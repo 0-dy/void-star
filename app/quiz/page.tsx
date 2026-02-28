@@ -173,9 +173,14 @@ export default function Quiz() {
                     <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-[#8b5a2b] to-[#c17f45] drop-shadow-sm">
                         명대사 팩트체크 O/X
                     </h1>
-                    <p className="text-[#6b4e31] text-sm font-medium">
-                        이 대사는 과연 이 영화에 나왔을까요? ({questionsAnswered <= 10 ? questionsAnswered : 10}/10)
-                    </p>
+                    <div className="text-[#6b4e31] text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-2 mt-1">
+                        <span>이 대사는 과연 이 영화에 나왔을까요? ({Math.min(questionsAnswered + 1, 10)}/10)</span>
+                        {!gameOver && !loading && question && !feedback && (
+                            <span className={`font-black px-2.5 py-0.5 rounded-full bg-white/60 border border-[#d4a373]/30 shadow-sm ${timeLeft <= 2 ? 'text-red-500 animate-pulse' : 'text-[#8b5a2b]'}`}>
+                                ⏱ 남은 시간: {timeLeft}초
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 {gameOver ? (
@@ -259,13 +264,6 @@ export default function Quiz() {
                                         <p className="text-lg font-bold text-[#8b5a2b]">
                                             영화 <span className="text-[#c17f45]">{question.source}</span> 의 대사가 맞을까요?
                                         </p>
-                                    </div>
-
-                                    {/* Timer Display */}
-                                    <div className="absolute top-4 right-4 bg-white/50 px-3 py-1 rounded-full border border-[#d4a373]/30 shadow-sm z-20">
-                                        <span className={`font-black ${timeLeft <= 2 ? 'text-red-500 animate-pulse' : 'text-[#8b5a2b]'}`}>
-                                            ⏱ {timeLeft}초
-                                        </span>
                                     </div>
 
                                     {/* Timer Progress Bar */}
