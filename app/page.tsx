@@ -212,11 +212,11 @@ function HomeContent() {
 
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
-              <span className="text-3xl">📝</span>
+              <span className="text-3xl">🎮</span>
             </div>
             <div className="text-left">
               <h3 className="text-white font-black text-xl mb-1 flex items-center gap-2">
-                영화 명대사 O/X 팩트체크 <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">NEW</span>
+                미니게임 : 영화 명대사 O/X 퀴즈 <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">NEW</span>
               </h3>
               <p className="text-[#fdf8f0]/90 text-sm font-medium">당신의 영화 지식을 테스트해보세요! (10연승 도전)</p>
             </div>
