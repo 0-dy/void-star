@@ -97,16 +97,20 @@ export default function Home() {
             </label>
             <div className="flex flex-wrap gap-3">
               {GENRES.map((genre) => (
-                <button
-                  key={genre}
-                  onClick={() => setSelectedGenre(genre)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${genre === "랜덤" ? "mr-4" : ""} ${selectedGenre === genre
-                    ? "bg-gradient-to-r from-[#b57b42] to-[#d4a373] text-white shadow-md shadow-[#d4a373]/40 border border-[#8b5a2b]/20"
-                    : "bg-white/60 text-[#8b5a2b] hover:bg-[#faedcd] border border-[#d4a373]/30 shadow-sm"
-                    }`}
-                >
-                  {genre}
-                </button>
+                <div key={genre} className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSelectedGenre(genre)}
+                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${selectedGenre === genre
+                      ? "bg-gradient-to-r from-[#b57b42] to-[#d4a373] text-white shadow-md shadow-[#d4a373]/40 border border-[#8b5a2b]/20"
+                      : "bg-white/60 text-[#8b5a2b] hover:bg-[#faedcd] border border-[#d4a373]/30 shadow-sm"
+                      }`}
+                  >
+                    {genre}
+                  </button>
+                  {genre === "랜덤" && (
+                    <span className="text-[#d4a373] font-bold text-lg select-none">/</span>
+                  )}
+                </div>
               ))}
             </div>
           </div>
