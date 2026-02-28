@@ -69,10 +69,10 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-10">
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400 animate-float">
-            기분에 따른 영화 명대사
+            명대사 포춘쿠키
           </h1>
           <p className="text-gray-400 text-lg break-keep">
-            지금 당신의 기분을 영화 같은 명대사로 바꿔보세요.
+            지금 당신의 기분에 따른 영화 명대사를 보여드려요.
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export default function Home() {
         <div className="w-full space-y-6">
           <div className="space-y-3">
             <label htmlFor="mood" className="text-sm font-medium text-gray-300 ml-1">
-              오늘 기분이 어떠신가요?
+              오늘 기분은 어떠세요?
             </label>
             <textarea
               id="mood"

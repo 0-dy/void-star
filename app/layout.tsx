@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "기분에 따른 영화 명대사",
+  title: "명대사 포춘쿠키",
   description: "당신의 기분과 상황을 아름다운 한 줄의 영화 명대사로 바꿔보세요.",
 };
 
