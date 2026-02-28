@@ -80,7 +80,45 @@ export default function Quiz() {
         setStreak(0);
         setQuestionsAnswered(0);
         setGameOver(false);
+        setHasSubmitted(false);
+        setNickname("");
         fetchQuestion();
+    };
+
+    const [nickname, setNickname] = useState("");
+    const [leaderboardError, setLeaderboardError] = useState("");
+    const [leaderboard, setLeaderboard] = useState<any[]>([]);
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+
+    const submitScore = async () => {
+        if (!nickname.trim()) {
+            setLeaderboardError("닉네임을 입력해주세요.");
+            return;
+        }
+
+        setSubmitting(true);
+        setLeaderboardError("");
+
+        try {
+            const res = await fetch("/api/leaderboard", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nickname, score })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                setLeaderboardError(data.error || "등록에 실패했습니다.");
+            } else {
+                setHasSubmitted(true);
+                setLeaderboard(data.leaderboard);
+            }
+        } catch (error) {
+            setLeaderboardError("서버 오류가 발생했습니다.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -111,17 +149,66 @@ export default function Quiz() {
                         명대사 팩트체크 O/X
                     </h1>
                     <p className="text-[#6b4e31] text-sm font-medium">
-                        이 대사는 과연 이 영화에 나왔을까요? ({questionsAnswered + 1}/10)
+                        이 대사는 과연 이 영화에 나왔을까요? ({questionsAnswered <= 10 ? questionsAnswered : 10}/10)
                     </p>
                 </div>
 
                 {gameOver ? (
-                    <div className="w-full text-center py-10 animate-fade-in-up px-4">
+                    <div className="w-full text-center py-6 animate-fade-in-up px-4 flex flex-col items-center">
                         <h2 className="text-4xl font-black text-[#5c4033] mb-4">게임 종료!</h2>
-                        <p className="text-xl font-bold text-[#8b5a2b] mb-8">최종 점수: <span className="text-3xl text-[#ee9b00]">{score}</span>점</p>
+                        <p className="text-xl font-bold text-[#8b5a2b] mb-6">최종 점수: <span className="text-3xl text-[#ee9b00]">{score}</span>점</p>
+
+                        {!hasSubmitted ? (
+                            <div className="w-full max-w-sm bg-white/50 p-6 rounded-2xl border border-[#d4a373]/30 mb-8">
+                                <h3 className="text-lg font-bold text-[#5c4033] mb-4 text-left">리더보드 등록</h3>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="닉네임 (최대 8자)"
+                                        maxLength={8}
+                                        className="flex-1 px-4 py-2 rounded-xl border-2 border-[#e6d5c3] focus:border-[#d4a373] focus:outline-none text-[#4a3627] font-bold"
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value)}
+                                    />
+                                    <button
+                                        onClick={submitScore}
+                                        disabled={submitting || nickname.length === 0}
+                                        className="bg-[#d4a373] text-white px-4 py-2 rounded-xl font-bold hover:bg-[#c17f45] transition-colors disabled:opacity-50"
+                                    >
+                                        등록
+                                    </button>
+                                </div>
+                                {leaderboardError && <p className="text-red-500 font-bold text-sm mt-3 text-left">{leaderboardError}</p>}
+                                <p className="text-[#8b5a2b]/70 text-xs text-left mt-2">※ 비속어 또는 부적절한 닉네임은 등록이 제한됩니다.</p>
+                            </div>
+                        ) : (
+                            <div className="w-full max-w-sm bg-white p-6 rounded-2xl border-2 border-[#e6d5c3] shadow-md mb-8">
+                                <div className="flex items-center justify-between mb-4 border-b border-[#e6d5c3] pb-2">
+                                    <h3 className="text-xl font-black text-[#5c4033] flex items-center gap-2">👑 명예의 전당 Top 10</h3>
+                                </div>
+                                <ul className="space-y-3">
+                                    {leaderboard.map((entry, idx) => (
+                                        <li key={idx} className="flex justify-between items-center text-sm">
+                                            <div className="flex items-center gap-3">
+                                                <span className={`font-black w-5 text-center ${idx === 0 ? 'text-yellow-500 text-lg' : idx === 1 ? 'text-gray-400 text-lg' : idx === 2 ? 'text-amber-600 text-lg' : 'text-[#8b5a2b]'}`}>
+                                                    {idx + 1}
+                                                </span>
+                                                <span className={`font-bold ${entry.nickname === nickname ? 'text-[#c17f45]' : 'text-[#4a3627]'}`}>
+                                                    {entry.nickname}
+                                                </span>
+                                            </div>
+                                            <span className="font-bold text-[#8b5a2b] bg-[#fdf8f0] px-3 py-1 rounded-full border border-[#e6d5c3]">
+                                                {entry.score}점
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
                         <button
                             onClick={restartQuiz}
-                            className="bg-[#4a3627] text-white px-8 py-3 rounded-xl font-bold text-lg hover:-translate-y-1 hover:shadow-lg transition-transform"
+                            className="bg-[#4a3627] text-white px-8 py-3 rounded-xl font-bold text-lg hover:-translate-y-1 hover:shadow-lg transition-transform w-full max-w-sm"
                         >
                             다시 도전하기 🔄
                         </button>
