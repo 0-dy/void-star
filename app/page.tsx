@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { toPng } from "html-to-image";
 
-const GENRES = ["느와르", "SF", "로맨스", "사이버펑크", "철학적"];
+const GENRES = ["느와르", "SF", "로맨스", "철학적"];
 
 export default function Home() {
   const [mood, setMood] = useState("");
@@ -69,10 +69,10 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-10">
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400 animate-float">
-            기분에 따른 명언 생성기
+            기분에 따른 조언
           </h1>
           <p className="text-gray-400 text-lg break-keep">
-            지금 당신의 기분을 영화 같은 명언으로 바꿔보세요.
+            지금 당신의 기분을 영화 같은 조언으로 바꿔보세요.
           </p>
         </div>
 
@@ -125,7 +125,7 @@ export default function Home() {
                 명언을 작성하는 중...
               </>
             ) : (
-              "나만의 명언 생성하기"
+              "명언 보기"
             )}
           </button>
         </div>
