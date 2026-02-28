@@ -21,6 +21,44 @@ export default function Quiz() {
     const [showConfetti, setShowConfetti] = useState(false);
     const [timeLeft, setTimeLeft] = useState(5);
 
+    const [gameStarted, setGameStarted] = useState(false);
+    const [nicknameError, setNicknameError] = useState("");
+    const [nickname, setNickname] = useState("");
+    const [leaderboardError, setLeaderboardError] = useState("");
+    const [leaderboard, setLeaderboard] = useState<any[]>([]);
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+
+    // Basic frontend profanity check
+    const BAD_WORDS = [
+        "시발", "씨발", "개새끼", "병신", "지랄", "좆", "썅", "미친", "애미", "느금마",
+        "염병", "창녀", "새끼", "섹스", "보지", "자지", "빨통", "딸딸이", "강간", "매춘"
+    ];
+
+    const containsProfanity = (text: string) => {
+        const lowerText = text.toLowerCase();
+        return BAD_WORDS.some(word => lowerText.includes(word));
+    };
+
+    const startGame = () => {
+        if (!nickname.trim()) {
+            setNicknameError("닉네임을 입력해주세요.");
+            return;
+        }
+        if (nickname.length > 8) {
+            setNicknameError("닉네임은 최대 8자까지 가능합니다.");
+            return;
+        }
+        if (containsProfanity(nickname)) {
+            setNicknameError("사용할 수 없는 단어가 포함되어 있습니다.");
+            return;
+        }
+
+        setNicknameError("");
+        setGameStarted(true);
+        fetchQuestion();
+    };
+
     const fetchQuestion = async () => {
         setLoading(true);
         setFeedback(null);
@@ -40,7 +78,7 @@ export default function Quiz() {
     };
 
     useEffect(() => {
-        fetchQuestion();
+        // Only fetch automatically if we aren't using the new start flow, but here we wait for startGame
     }, []);
 
     useEffect(() => {
@@ -65,10 +103,10 @@ export default function Quiz() {
             setStreak(0);
             setFeedback({
                 isCorrect: false,
-                message: `시간 초과! ⏳ (원작: ${question.actualSource || question.source})`
+                message: `시간 초과! ⏳ (원작: ${question?.actualSource || question?.source})`
             });
         } else {
-            const isCorrect = userAnswer === question.isCorrect;
+            const isCorrect = userAnswer === question?.isCorrect;
 
             if (isCorrect) {
                 setScore(s => s + 10);
@@ -106,21 +144,12 @@ export default function Quiz() {
         setQuestionsAnswered(0);
         setGameOver(false);
         setHasSubmitted(false);
+        setGameStarted(false);
         setNickname("");
-        fetchQuestion();
     };
 
-    const [nickname, setNickname] = useState("");
-    const [leaderboardError, setLeaderboardError] = useState("");
-    const [leaderboard, setLeaderboard] = useState<any[]>([]);
-    const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-
     const submitScore = async () => {
-        if (!nickname.trim()) {
-            setLeaderboardError("닉네임을 입력해주세요.");
-            return;
-        }
+        if (hasSubmitted || submitting) return;
 
         setSubmitting(true);
         setLeaderboardError("");
@@ -145,6 +174,13 @@ export default function Quiz() {
             setSubmitting(false);
         }
     };
+
+    // Auto submit score when game over
+    useEffect(() => {
+        if (gameOver && gameStarted && !hasSubmitted && !submitting) {
+            submitScore();
+        }
+    }, [gameOver, gameStarted, hasSubmitted, submitting]);
 
     return (
         <main className="min-h-screen w-full relative overflow-hidden flex flex-col items-center justify-center p-4 bg-[#fdf8f0]">
@@ -174,8 +210,8 @@ export default function Quiz() {
                         명대사 팩트체크 O/X
                     </h1>
                     <div className="text-[#6b4e31] text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-2 mt-1">
-                        <span>이 대사는 과연 이 영화에 나왔을까요? ({Math.min(questionsAnswered + 1, 10)}/10)</span>
-                        {!gameOver && !loading && question && !feedback && (
+                        <span>이 대사는 과연 이 영화에 나왔을까요? {gameStarted ? `(${Math.min(questionsAnswered + 1, 10)}/10)` : ""}</span>
+                        {gameStarted && !gameOver && !loading && question && !feedback && (
                             <span className={`font-black px-2.5 py-0.5 rounded-full bg-white/60 border border-[#d4a373]/30 shadow-sm ${timeLeft <= 2 ? 'text-red-500 animate-pulse' : 'text-[#8b5a2b]'}`}>
                                 ⏱ 남은 시간: {timeLeft}초
                             </span>
@@ -183,33 +219,43 @@ export default function Quiz() {
                     </div>
                 </div>
 
-                {gameOver ? (
+                {!gameStarted ? (
+                    <div className="w-full text-center py-6 animate-fade-in-up px-4 flex flex-col items-center">
+                        <div className="w-full max-w-sm bg-white/50 p-6 rounded-2xl border border-[#d4a373]/30 mb-8 shadow-sm">
+                            <h3 className="text-lg font-bold text-[#5c4033] mb-4 text-left">플레이어 닉네임 설정</h3>
+                            <div className="flex flex-col gap-3">
+                                <input
+                                    type="text"
+                                    placeholder="닉네임 (최대 8자)"
+                                    maxLength={8}
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-[#e6d5c3] focus:border-[#d4a373] focus:outline-none text-[#4a3627] font-bold text-center text-lg"
+                                    value={nickname}
+                                    onChange={(e) => setNickname(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && startGame()}
+                                />
+                                <button
+                                    onClick={startGame}
+                                    disabled={nickname.length === 0}
+                                    className="w-full bg-gradient-to-r from-[#8b5a2b] to-[#b07d4f] text-white px-4 py-3 rounded-xl font-bold text-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:hover:shadow-none hover:-translate-y-0.5"
+                                >
+                                    게임 시작 🎬
+                                </button>
+                            </div>
+                            {nicknameError && <p className="text-red-500 font-bold text-sm mt-3 text-center">{nicknameError}</p>}
+                            <p className="text-[#8b5a2b]/70 text-xs text-center mt-3 break-keep">
+                                ※ 비속어 또는 부적절한 닉네임은 사용이 제한되며 리더보드에 등록됩니다.
+                            </p>
+                        </div>
+                    </div>
+                ) : gameOver ? (
                     <div className="w-full text-center py-6 animate-fade-in-up px-4 flex flex-col items-center">
                         <h2 className="text-4xl font-black text-[#5c4033] mb-4">게임 종료!</h2>
                         <p className="text-xl font-bold text-[#8b5a2b] mb-6">최종 점수: <span className="text-3xl text-[#ee9b00]">{score}</span>점</p>
 
-                        {!hasSubmitted ? (
-                            <div className="w-full max-w-sm bg-white/50 p-6 rounded-2xl border border-[#d4a373]/30 mb-8">
-                                <h3 className="text-lg font-bold text-[#5c4033] mb-4 text-left">리더보드 등록</h3>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="닉네임 (최대 8자)"
-                                        maxLength={8}
-                                        className="flex-1 px-4 py-2 rounded-xl border-2 border-[#e6d5c3] focus:border-[#d4a373] focus:outline-none text-[#4a3627] font-bold"
-                                        value={nickname}
-                                        onChange={(e) => setNickname(e.target.value)}
-                                    />
-                                    <button
-                                        onClick={submitScore}
-                                        disabled={submitting || nickname.length === 0}
-                                        className="bg-[#d4a373] text-white px-4 py-2 rounded-xl font-bold hover:bg-[#c17f45] transition-colors disabled:opacity-50"
-                                    >
-                                        등록
-                                    </button>
-                                </div>
-                                {leaderboardError && <p className="text-red-500 font-bold text-sm mt-3 text-left">{leaderboardError}</p>}
-                                <p className="text-[#8b5a2b]/70 text-xs text-left mt-2">※ 비속어 또는 부적절한 닉네임은 등록이 제한됩니다.</p>
+                        {!hasSubmitted || submitting ? (
+                            <div className="w-full h-32 flex flex-col items-center justify-center">
+                                <span className="text-[#8b5a2b] font-bold animate-pulse text-xl mb-2">리더보드 등록 중... 🏆</span>
+                                {leaderboardError && <p className="text-red-500 font-bold text-sm mt-2">{leaderboardError}</p>}
                             </div>
                         ) : (
                             <div className="w-full max-w-sm bg-white p-6 rounded-2xl border-2 border-[#e6d5c3] shadow-md mb-8">
