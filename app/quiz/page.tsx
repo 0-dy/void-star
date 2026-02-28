@@ -315,12 +315,19 @@ export default function Quiz() {
                                     <span className="text-[#8b5a2b] font-bold animate-pulse text-xl">문제 불러오는 중... 🎬</span>
                                 </div>
                             ) : question ? (
-                                <div className="min-h-[12rem] flex flex-col justify-center items-center text-center relative z-10">
-                                    <span className="text-4xl text-[#d4a373] opacity-30 absolute -top-2 left-0 font-serif">"</span>
-                                    <p className="text-2xl font-bold text-[#4a3627] leading-relaxed mb-6 px-4 tracking-tight break-keep">
+                                <div className="min-h-[12rem] w-full flex flex-col justify-center items-center text-center relative z-10 py-4">
+                                    <span className="text-4xl sm:text-5xl text-[#d4a373] opacity-30 absolute top-0 left-2 font-serif">"</span>
+                                    <p
+                                        className={`w-full font-bold text-[#4a3627] mb-6 px-4 sm:px-10 tracking-tight break-keep break-words ${question.quote.length > 60
+                                                ? 'text-lg sm:text-xl leading-snug'
+                                                : question.quote.length > 30
+                                                    ? 'text-xl sm:text-2xl leading-relaxed'
+                                                    : 'text-2xl sm:text-3xl leading-relaxed'
+                                            }`}
+                                    >
                                         {question.quote}
                                     </p>
-                                    <span className="text-4xl text-[#d4a373] opacity-30 absolute bottom-12 right-0 font-serif">"</span>
+                                    <span className="text-4xl sm:text-5xl text-[#d4a373] opacity-30 absolute bottom-14 right-2 font-serif">"</span>
                                     <div className="w-full border-t border-dashed border-[#d4a373]/30 pt-4 mt-2">
                                         <p className="text-lg font-bold text-[#8b5a2b]">
                                             영화 <span className="text-[#c17f45]">{question.source}</span> 의 대사가 맞을까요?
