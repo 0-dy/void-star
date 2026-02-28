@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { toPng } from "html-to-image";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 const GENRES = [
   "랜덤",
@@ -14,12 +16,24 @@ const GENRES = [
   "코미디(Comedy)"
 ];
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const genreFromUrl = searchParams.get("genre");
+
   const [mood, setMood] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState(GENRES[0]);
+  const [selectedGenre, setSelectedGenre] = useState(
+    genreFromUrl && GENRES.includes(genreFromUrl) ? genreFromUrl : GENRES[0]
+  );
   const [isGenerating, setIsGenerating] = useState(false);
   const [quote, setQuote] = useState("");
   const quoteCardRef = useRef<HTMLDivElement>(null);
+
+  // If URL changes, update genre
+  useEffect(() => {
+    if (genreFromUrl && GENRES.includes(genreFromUrl)) {
+      setSelectedGenre(genreFromUrl);
+    }
+  }, [genreFromUrl]);
 
   const handleGenerate = async () => {
     if (!mood.trim()) return;
@@ -184,6 +198,47 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Mini-Games Banner */}
+      <div className="w-full max-w-2xl mt-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <Link
+          href="/roulette"
+          className="group relative overflow-hidden bg-gradient-to-r from-[#d4a373] to-[#8b5a2b] rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-[#d4a373]/20 transition-transform hover:-translate-y-1 hover:shadow-xl"
+        >
+          {/* Decorative rotating cookie/wheel graphic hints */}
+          <div className="absolute right-[-20%] top-[-50%] opacity-20 group-hover:rotate-45 transition-transform duration-700">
+            <svg width="200" height="200" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="45" stroke="white" strokeWidth="10" strokeDasharray="15 15" />
+            </svg>
+          </div>
+
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+              <span className="text-3xl">🎰</span>
+            </div>
+            <div className="text-left">
+              <h3 className="text-white font-black text-xl mb-1 flex items-center gap-2">
+                포춘쿠키 장르 룰렛 <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">NEW</span>
+              </h3>
+              <p className="text-[#fdf8f0]/90 text-sm font-medium">오늘 무슨 영화 명대사를 볼지 고민된다면? 돌려보세요!</p>
+            </div>
+          </div>
+
+          <div className="relative z-10 hidden sm:flex bg-white/20 hover:bg-white/30 transition-colors p-3 rounded-full backdrop-blur-sm shadow-inner group-hover:scale-110 duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-[#fdf8f0] text-[#8b5a2b] font-bold">로딩 중...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
