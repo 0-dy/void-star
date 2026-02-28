@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "기분에 따른 조언",
-  description: "당신의 기분과 상황을 아름다운 한 줄의 영화 조언으로 바꿔보세요.",
+  title: "기분에 따른 영화 명대사",
+  description: "당신의 기분과 상황을 아름다운 한 줄의 영화 명대사로 바꿔보세요.",
 };
 
 export default function RootLayout({
