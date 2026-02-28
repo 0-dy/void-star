@@ -299,10 +299,20 @@ export default function Quiz() {
 
                         <button
                             onClick={restartQuiz}
-                            className="bg-[#4a3627] text-white px-8 py-3 rounded-xl font-bold text-lg hover:-translate-y-1 hover:shadow-lg transition-transform w-full max-w-sm"
+                            className="bg-[#4a3627] text-white px-8 py-3 rounded-xl font-bold text-lg hover:-translate-y-1 hover:shadow-lg transition-transform w-full max-w-sm mb-4"
                         >
                             다시 도전하기 🔄
                         </button>
+
+                        <a
+                            href="https://www.buymeacoffee.com/0dymood"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 bg-[#FFDD00] text-black px-6 py-3 rounded-xl font-bold hover:bg-[#FFEA00] transition-colors w-full max-w-sm shadow-sm"
+                        >
+                            <img src="https://cdn.buymeacoffee.com/buttons/bmc-new-btn-logo.svg" alt="Buy me a coffee" className="w-5 h-5" />
+                            <span>개발자에게 커피 한 잔 ☕</span>
+                        </a>
                     </div>
                 ) : (
                     <div className="w-full max-w-lg relative">
@@ -319,10 +329,10 @@ export default function Quiz() {
                                     <span className="text-4xl sm:text-5xl text-[#d4a373] opacity-30 absolute top-0 left-2 font-serif">"</span>
                                     <p
                                         className={`w-full font-bold text-[#4a3627] mb-6 px-4 sm:px-10 tracking-tight break-keep break-words ${question.quote.length > 60
-                                                ? 'text-lg sm:text-xl leading-snug'
-                                                : question.quote.length > 30
-                                                    ? 'text-xl sm:text-2xl leading-relaxed'
-                                                    : 'text-2xl sm:text-3xl leading-relaxed'
+                                            ? 'text-lg sm:text-xl leading-snug'
+                                            : question.quote.length > 30
+                                                ? 'text-xl sm:text-2xl leading-relaxed'
+                                                : 'text-2xl sm:text-3xl leading-relaxed'
                                             }`}
                                     >
                                         {question.quote}

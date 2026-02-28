@@ -36,7 +36,16 @@ function HomeContent() {
   }, [genreFromUrl]);
 
   const handleGenerate = async () => {
-    if (!mood.trim()) return;
+    const trimmedMood = mood.trim();
+    if (!trimmedMood) {
+      alert("오늘의 기분이나 상황을 입력해주세요!");
+      return;
+    }
+    if (trimmedMood.length <= 5) {
+      alert("기분이나 상황을 조금만 더 길게 (5글자 초과) 적어주세요!");
+      return;
+    }
+
     setIsGenerating(true);
     setQuote("");
 
