@@ -231,6 +231,37 @@ function HomeContent() {
           </div>
         </Link>
       </div>
+
+      {/* Quiz Banner */}
+      <div className="w-full max-w-2xl mt-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+        <Link
+          href="/quiz"
+          className="group relative overflow-hidden bg-gradient-to-r from-[#8b5a2b] to-[#b07d4f] rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-[#8b5a2b]/20 transition-transform hover:-translate-y-1 hover:shadow-xl"
+        >
+          {/* Decorative graphic hints */}
+          <div className="absolute left-[-10%] bottom-[-50%] opacity-10 group-hover:scale-110 transition-transform duration-700">
+            <span className="text-[150px] font-black pointer-events-none">?</span>
+          </div>
+
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+              <span className="text-3xl">📝</span>
+            </div>
+            <div className="text-left">
+              <h3 className="text-white font-black text-xl mb-1 flex items-center gap-2">
+                영화 명대사 O/X 팩트체크 <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">NEW</span>
+              </h3>
+              <p className="text-[#fdf8f0]/90 text-sm font-medium">당신의 영화 지식을 테스트해보세요! (10연승 도전)</p>
+            </div>
+          </div>
+
+          <div className="relative z-10 hidden sm:flex bg-white/20 hover:bg-white/30 transition-colors p-3 rounded-full backdrop-blur-sm shadow-inner group-hover:scale-110 duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      </div>
     </main>
   );
 }
