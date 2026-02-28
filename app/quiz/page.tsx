@@ -20,6 +20,7 @@ export default function Quiz() {
     const [questionsAnswered, setQuestionsAnswered] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
     const [timeLeft, setTimeLeft] = useState(5);
+    const [barWidth, setBarWidth] = useState(100);
 
     const [gameStarted, setGameStarted] = useState(false);
     const [nicknameError, setNicknameError] = useState("");
@@ -95,6 +96,20 @@ export default function Quiz() {
 
         return () => clearInterval(timer);
     }, [timeLeft, loading, feedback, gameOver, question]);
+
+    useEffect(() => {
+        if (!gameStarted || loading || feedback || gameOver || !question) {
+            setBarWidth(100);
+            return;
+        }
+
+        // Slight delay to ensure the DOM resets to 100% before starting the 5s transition
+        const timeout = setTimeout(() => {
+            setBarWidth(0);
+        }, 50);
+
+        return () => clearTimeout(timeout);
+    }, [gameStarted, loading, feedback, gameOver, question]);
 
     const handleAnswer = (userAnswer: boolean | null) => {
         if (!question || feedback) return;
@@ -315,8 +330,8 @@ export default function Quiz() {
                                     {/* Timer Progress Bar */}
                                     <div className="absolute bottom-0 left-0 w-full h-1.5 bg-[#e6d5c3] z-20 rounded-b-2xl overflow-hidden">
                                         <div
-                                            className={`h-full transition-all duration-1000 ease-linear ${timeLeft <= 2 ? 'bg-red-500' : 'bg-[#c17f45]'}`}
-                                            style={{ width: `${(timeLeft / 5) * 100}%` }}
+                                            className={`h-full transition-[width] ease-linear ${timeLeft <= 2 ? 'bg-red-500' : 'bg-[#c17f45]'}`}
+                                            style={{ width: `${barWidth}%`, transitionDuration: barWidth === 100 ? '0s' : '5s' }}
                                         ></div>
                                     </div>
                                 </div>
