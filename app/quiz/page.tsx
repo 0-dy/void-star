@@ -19,11 +19,13 @@ export default function Quiz() {
     const [gameOver, setGameOver] = useState(false);
     const [questionsAnswered, setQuestionsAnswered] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(5);
 
     const fetchQuestion = async () => {
         setLoading(true);
         setFeedback(null);
         setShowConfetti(false);
+        setTimeLeft(5);
         try {
             const res = await fetch("/api/quiz-question");
             if (res.ok) {
@@ -41,26 +43,49 @@ export default function Quiz() {
         fetchQuestion();
     }, []);
 
-    const handleAnswer = (userAnswer: boolean) => {
+    useEffect(() => {
+        if (loading || feedback || gameOver || !question) return;
+
+        if (timeLeft <= 0) {
+            handleAnswer(null as any); // Explicitly calling timeout
+            return;
+        }
+
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeLeft, loading, feedback, gameOver, question]);
+
+    const handleAnswer = (userAnswer: boolean | null) => {
         if (!question || feedback) return;
 
-        const isCorrect = userAnswer === question.isCorrect;
-
-        if (isCorrect) {
-            setScore(s => s + 10);
-            setStreak(s => s + 1);
-            setFeedback({ isCorrect: true, message: "정답입니다! 🎉" });
-
-            if (streak + 1 >= 3) {
-                // Fire custom CSS confetti on a streak of 3 or more
-                setShowConfetti(true);
-            }
-        } else {
+        if (userAnswer === null) {
             setStreak(0);
             setFeedback({
                 isCorrect: false,
-                message: `땡! 틀렸습니다. (원작: ${question.actualSource || question.source})`
+                message: `시간 초과! ⏳ (원작: ${question.actualSource || question.source})`
             });
+        } else {
+            const isCorrect = userAnswer === question.isCorrect;
+
+            if (isCorrect) {
+                setScore(s => s + 10);
+                setStreak(s => s + 1);
+                setFeedback({ isCorrect: true, message: "정답입니다! 🎉" });
+
+                if (streak + 1 >= 3) {
+                    // Fire custom CSS confetti on a streak of 3 or more
+                    setShowConfetti(true);
+                }
+            } else {
+                setStreak(0);
+                setFeedback({
+                    isCorrect: false,
+                    message: `땡! 틀렸습니다. (원작: ${question.actualSource || question.source})`
+                });
+            }
         }
 
         setQuestionsAnswered(q => q + 1);
@@ -234,6 +259,21 @@ export default function Quiz() {
                                         <p className="text-lg font-bold text-[#8b5a2b]">
                                             영화 <span className="text-[#c17f45]">{question.source}</span> 의 대사가 맞을까요?
                                         </p>
+                                    </div>
+
+                                    {/* Timer Display */}
+                                    <div className="absolute top-4 right-4 bg-white/50 px-3 py-1 rounded-full border border-[#d4a373]/30 shadow-sm z-20">
+                                        <span className={`font-black ${timeLeft <= 2 ? 'text-red-500 animate-pulse' : 'text-[#8b5a2b]'}`}>
+                                            ⏱ {timeLeft}초
+                                        </span>
+                                    </div>
+
+                                    {/* Timer Progress Bar */}
+                                    <div className="absolute bottom-0 left-0 w-full h-1.5 bg-[#e6d5c3] z-20 rounded-b-2xl overflow-hidden">
+                                        <div
+                                            className={`h-full transition-all duration-1000 ease-linear ${timeLeft <= 2 ? 'bg-red-500' : 'bg-[#c17f45]'}`}
+                                            style={{ width: `${(timeLeft / 5) * 100}%` }}
+                                        ></div>
                                     </div>
                                 </div>
                             ) : (
