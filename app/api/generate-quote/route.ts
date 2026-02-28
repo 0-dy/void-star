@@ -83,7 +83,7 @@ const QUOTE_DATABASE: Record<string, Quote[]> = {
         { text: `"나의 인생은 당신의 것이오."`, source: "- 카사블랑카 (1942, 미국 아카데미 작품상)", keywords: ["순종", "헌신", "고전", "바침", "확신"] },
         { text: `"우리가 다시 만나지 못한다면, 좋은 아침, 좋은 오후, 그리고 좋은 밤 되길 바랍니다."`, source: "- 트루먼 쇼 (1998, 미국 골든 글로브)", keywords: ["이별", "축복", "따뜻함", "안녕", "마지막"] }
     ],
-    "철학적": [
+    "철학": [
         { text: `"뭣이 중헌디, 뭣이 중허냐고!"`, source: "- 곡성 (2016)", keywords: ["답답", "분노", "방황", "가치", "우선순위", "짜증", "중요"] },
         { text: `"사람이 언제 제일 예쁜 줄 알아? 죽을 준비가 다 됐을 때야."`, source: "- 마더 (2009)", keywords: ["허상", "체념", "아름다움", "죽음", "깨달음", "마지막"] },
         { text: `"밥은 먹고 다니냐?"`, source: "- 살인의 추억 (2003)", keywords: ["안부", "쓸쓸함", "연민", "분노", "인간성", "밥", "걱정"] },
@@ -126,8 +126,16 @@ export async function POST(req: Request) {
         // Simulate AI thinking time to keep the premium feel
         await new Promise((resolve) => setTimeout(resolve, 1500));
 
-        // Get quotes for the selected genre
-        const categoryQuotes = QUOTE_DATABASE[genre] || QUOTE_DATABASE["느와르"];
+        let categoryQuotes: Quote[] = [];
+
+        // Handle "랜덤" genre by combining all existing genre quotes
+        if (genre === "랜덤") {
+            Object.values(QUOTE_DATABASE).forEach((quotesArray) => {
+                categoryQuotes = categoryQuotes.concat(quotesArray);
+            });
+        } else {
+            categoryQuotes = QUOTE_DATABASE[genre] || QUOTE_DATABASE["느와르"];
+        }
 
         // 1. Analyze mood and weight related quotes
         // Find quotes whose keywords overlap with the user's mood string
@@ -135,7 +143,7 @@ export async function POST(req: Request) {
             quote.keywords.some(keyword => mood.includes(keyword))
         );
 
-        // 2. If no keywords match, fallback to choosing from the whole genre array
+        // 2. If no keywords match, fallback to choosing from the whole genre array (or combined arrays if random)
         if (matchingQuotes.length === 0) {
             matchingQuotes = categoryQuotes;
         }

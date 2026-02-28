@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { toPng } from "html-to-image";
 
-const GENRES = ["느와르", "SF", "로맨스", "철학적"];
+const GENRES = ["랜덤", "느와르", "SF", "로맨스", "철학"];
 
 export default function Home() {
   const [mood, setMood] = useState("");
