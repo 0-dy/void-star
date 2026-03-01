@@ -111,8 +111,8 @@ function HomeContent() {
     try {
       const { toBlob } = await import("html-to-image");
       const blob = await toBlob(quoteCardRef.current, {
-        backgroundColor: "#fdf8f0", // Match new warm background
-        pixelRatio: 2, // Higher quality
+        backgroundColor: "#fdf8f0",
+        pixelRatio: 2,
       });
 
       if (!blob) throw new Error("Failed to generate image blob");
@@ -120,18 +120,40 @@ function HomeContent() {
       const file = new File([blob], `my-mood-quote-${Date.now()}.png`, { type: "image/png" });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: "명대사 포춘쿠키",
-          text: "오늘 내 기분에 딱 맞는 영화 명대사!",
-        });
+        try {
+          await navigator.share({
+            files: [file],
+            title: "명대사 포춘쿠키",
+            text: "오늘 내 기분에 딱 맞는 영화 명대사!",
+          });
+          return;
+        } catch (shareError: any) {
+          // Ignore AbortError (user cancelled share)
+          if (shareError.name !== 'AbortError') {
+            console.error("Native share failed, falling back to clipboard", shareError);
+          } else {
+            return;
+          }
+        }
+      }
+
+      // Fallback: Clipboard copy for Instagram/Kakao in-app browsers
+      if (navigator.clipboard && window.ClipboardItem) {
+        try {
+          // Mobile Safari requires Promise resolution inside the write call
+          const item = new ClipboardItem({ "image/png": blob });
+          await navigator.clipboard.write([item]);
+          alert("이미지가 클립보드에 복사되었습니다! 인스타그램이나 카톡 붙여넣기로 공유해보세요. 📸");
+        } catch (clipboardError) {
+          console.error("Clipboard copy failed", clipboardError);
+          alert("공유 및 복사에 실패했습니다. 옆의 '저장하기' 버튼을 이용해 주세요. 😢");
+        }
       } else {
-        // Fallback if file sharing is not supported
-        alert("이 브라우저/기기에서는 기본 공유 기능을 지원하지 않습니다. 😢 이미지 저장 후 공유해주세요!");
+        alert("이 환경에서는 공유하기가 지원되지 않습니다. 옆의 '저장하기' 버튼을 이용해 주세요. 😢");
       }
     } catch (error) {
-      console.error("Error sharing image:", error);
-      alert("이미지 공유 중 오류가 발생했습니다.");
+      console.error("Error generating image for share:", error);
+      alert("이미지 처리 중 오류가 발생했습니다.");
     }
   };
 
