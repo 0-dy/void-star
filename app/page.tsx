@@ -118,12 +118,15 @@ function HomeContent() {
       if (!blob) throw new Error("Failed to generate image blob");
 
       // Check if user is in an In-App Browser (Kakao, Instagram, Line, etc.)
-      const isIab = /KAKAOTALK|Instagram|FBAV|Line/i.test(navigator.userAgent);
+      const isKakao = /KAKAOTALK/i.test(navigator.userAgent);
+      const isOtherIab = /Instagram|FBAV|Line/i.test(navigator.userAgent);
+      const isIab = isKakao || isOtherIab;
+
       // Check if user is on a mobile device
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+      // 1. Mobile & Normal Browser: Try full image share
       if (isMobile && !isIab && navigator.canShare) {
-        // Try native file sharing for normal mobile browsers (Chrome, Safari, Samsung Internet)
         const file = new File([blob], `my-mood-quote-${Date.now()}.png`, { type: "image/png" });
         if (navigator.canShare({ files: [file] })) {
           try {
@@ -135,10 +138,28 @@ function HomeContent() {
             return;
           } catch (shareError: any) {
             if (shareError.name !== 'AbortError') {
-              console.error("Native share failed", shareError);
+              console.error("Native file share failed", shareError);
             } else {
               return;
             }
+          }
+        }
+      }
+
+      // 2. KakaoTalk In-App Browser: Try sharing TEXT/URL only (Kakao blocks file sharing)
+      if (isKakao && navigator.share) {
+        try {
+          await navigator.share({
+            title: "명대사 포춘쿠키",
+            text: `"${quote.split('\n')[0]}" - 오늘 내 기분에 딱 맞는 영화 명대사!`,
+            url: window.location.href, // This triggers Kakao's native link share
+          });
+          return;
+        } catch (shareError: any) {
+          if (shareError.name !== 'AbortError') {
+            console.error("Kakao native text share failed", shareError);
+          } else {
+            return;
           }
         }
       }
