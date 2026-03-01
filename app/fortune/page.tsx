@@ -299,37 +299,30 @@ export default function FortunePage() {
                             {/* Date of Birth */}
                             <div>
                                 <label className="block text-sm font-bold text-[#5c4033] mb-2 ml-1">생년월일</label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            value={birthYear}
-                                            onChange={(e) => setBirthYear(e.target.value.slice(0, 4))} /* Limit to 4 digits visually */
-                                            placeholder="YYYY"
-                                            className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl pl-4 pr-8 py-3 sm:py-3.5 text-[#4a3627] text-center font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm"
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b5a2b] text-sm font-bold">년</span>
-                                    </div>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            value={birthMonth}
-                                            onChange={(e) => setBirthMonth(e.target.value.slice(0, 2))}
-                                            placeholder="MM"
-                                            className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl pl-4 pr-8 py-3 sm:py-3.5 text-[#4a3627] text-center font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm"
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b5a2b] text-sm font-bold">월</span>
-                                    </div>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            value={birthDay}
-                                            onChange={(e) => setBirthDay(e.target.value.slice(0, 2))}
-                                            placeholder="DD"
-                                            className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl pl-4 pr-8 py-3 sm:py-3.5 text-[#4a3627] text-center font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm"
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b5a2b] text-sm font-bold">일</span>
-                                    </div>
+                                <div className="relative">
+                                    <input
+                                        type="date"
+                                        value={
+                                            birthYear && birthMonth && birthDay
+                                                ? `${birthYear.padStart(4, '0')}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`
+                                                : ""
+                                        }
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val) {
+                                                const [y, m, d] = val.split('-');
+                                                setBirthYear(y);
+                                                setBirthMonth(m);
+                                                setBirthDay(d);
+                                            } else {
+                                                setBirthYear("");
+                                                setBirthMonth("");
+                                                setBirthDay("");
+                                            }
+                                        }}
+                                        className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl px-4 py-3 sm:py-3.5 text-[#4a3627] text-center font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm"
+                                        style={{ minHeight: '52px' }}
+                                    />
                                 </div>
                             </div>
 
