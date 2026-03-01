@@ -299,11 +299,11 @@ export default function FortunePage() {
                             {/* Date of Birth */}
                             <div>
                                 <label className="block text-sm font-bold text-[#5c4033] mb-2 ml-1">생년월일</label>
-                                <div className="relative w-full border border-[#d4a373]/50 rounded-2xl bg-white/70 shadow-sm overflow-hidden flex items-center justify-center transition-all focus-within:ring-2 focus-within:ring-[#d4a373]" style={{ minHeight: '52px' }}>
-                                    <span className={`font-medium pointer-events-none ${birthYear ? 'text-[#4a3627]' : 'text-[#a8907b]'}`}>
+                                <div className="relative w-full border border-[#d4a373]/50 rounded-2xl bg-white/70 shadow-sm overflow-hidden flex items-center justify-center transition-all focus-within:ring-2 focus-within:ring-[#d4a373] sm:border-none sm:bg-transparent sm:shadow-none" style={{ minHeight: '52px' }}>
+                                    <span className={`font-medium pointer-events-none sm:hidden ${birthYear ? 'text-[#4a3627]' : 'text-[#a8907b]'}`}>
                                         {birthYear && birthMonth && birthDay
                                             ? `${birthYear}년 ${birthMonth.padStart(2, '0')}월 ${birthDay.padStart(2, '0')}일`
-                                            : "가볍게 터치하여 선택해주세요"}
+                                            : "터치하여 선택해주세요"}
                                     </span>
                                     <input
                                         type="date"
@@ -325,7 +325,8 @@ export default function FortunePage() {
                                                 setBirthDay("");
                                             }
                                         }}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer sm:opacity-100 sm:relative sm:inset-auto sm:bg-white/70 sm:border sm:border-[#d4a373]/50 sm:rounded-2xl sm:px-4 sm:py-3.5 sm:text-[#4a3627] sm:text-center sm:font-medium sm:focus:outline-none sm:focus:ring-2 sm:focus:ring-[#d4a373] sm:shadow-sm"
+                                        style={{ minHeight: '52px' }}
                                     />
                                 </div>
                             </div>
