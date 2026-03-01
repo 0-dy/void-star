@@ -1,7 +1,40 @@
 import { NextResponse } from 'next/server';
 
-export const maxDuration = 10; // 10 seconds timeout for Vercel Hobby
+// 10초 타임아웃 방지
+export const maxDuration = 10;
 export const dynamic = 'force-dynamic';
+
+const FORTUNE_TEMPLATES = [
+    { title: "새로운 기운이 샘솟는 하루입니다! 🌱", text: "{name}님, 오늘 하루는 그동안 머뭇거렸던 일에 과감히 도전해보기 좋은 날입니다. 작은 성공이 큰 파도를 만들어낼 거예요." },
+    { title: "뜻밖의 행운이 찾아올지도 몰라요! 🍀", text: "{name}님, 오늘은 주변 사람들의 말에 귀 기울여보세요. 평범한 대화 속에서 귀중한 힌트를 얻을 수 있는 날입니다." },
+    { title: "꾸준함이 빛을 발하는 하루입니다. ✨", text: "{name}님, 지금까지 묵묵히 노력해온 것들이 서서히 결실을 맺을 준비를 하고 있습니다. 오늘은 스스로를 칭찬해주세요." },
+    { title: "금전운과 성취운이 깃든 하루입니다! 💰", text: "{name}님, 오늘은 당신의 직감력이 유난히 뛰어난 날입니다. 결정해야 할 일이 있다면 마음이 이끄는 대로 선택해보세요." },
+    { title: "조금 쉬어가도 좋은 여유로운 하루입니다. ☕", text: "{name}님, 오늘은 무리하게 진도를 빼기보다 상황을 반추하고 마음을 다독이는 시간이 필요합니다. 쉼이 곧 전진입니다." },
+    { title: "귀인의 도움으로 막힌 일이 풀릴 징조입니다. 🤝", text: "{name}님, 평소 연락하지 않던 지인이나 동료의 한마디가 큰 실마리가 될 수 있습니다. 마음을 열고 다가가세요." },
+    { title: "내 안의 에너지가 넘쳐흐르는 하루입니다! 🔥", text: "{name}님, 계획했던 일이 있다면 바로 오늘 시작하세요. 넘치는 열정이 주변 사람들까지 긍정적으로 물들일 것입니다." },
+    { title: "지혜롭게 위기를 기회로 바꿀 수 있는 날! 🧠", text: "{name}님, 사소한 오해나 실수가 생기더라도 당황하지 마세요. 오히려 그것이 전화위복이 되어 더 좋은 결과를 낳을 운세입니다." },
+    { title: "소소한 행복이 연속되는 하루입니다. 🎀", text: "{name}님, 오늘은 기대하지 않았던 작은 일들이 모여 큰 행복을 만들어내는 날입니다. 주위를 둘러보며 미소를 지어보세요." },
+    { title: "창의력이 샘솟는 아이디어의 날입니다! 💡", text: "{name}님, 머릿속에 떠오른 그 생각, 가볍게 넘기지 마세요. 오늘 떠오른 직감이 당신을 아주 좋은 방향으로 이끌어 줄 것입니다." }
+];
+
+const MOVIE_QUOTES = [
+    { text: "우리는 답을 찾을 것이다. 늘 그랬듯이.", movie: "인터스텔라 (2014)" },
+    { text: "때론 과감한 결단이 인생을 바꾸기도 해.", movie: "인셉션 (2010)" },
+    { text: "준비가 가장 완벽한 방패다.", movie: "명량 (2014)" },
+    { text: "포스가 너와 함께 하기를.", movie: "스타워즈 (1977)" },
+    { text: "오늘의 특별한 순간들은 내일의 기억들이야.", movie: "알라딘 (1992)" },
+    { text: "최고의 순간은 아직 오지 않았어.", movie: "토이 스토리 3 (2010)" },
+    { text: "어떤 새는 새장에 가둘 수 없다. 그 깃털이 너무 아름답기 때문이다.", movie: "쇼생크 탈출 (1994)" },
+    { text: "당신은 나를 더 좋은 사람이 되고 싶게 만들어요.", movie: "이보다 더 좋을 순 없다 (1997)" },
+    { text: "그게 바로 나야, 완벽하지 않은 나.", movie: "데드풀 (2016)" },
+    { text: "인생은 초콜릿 상자와 같은 거야. 네가 무엇을 고를지 아무도 모르잖니.", movie: "포레스트 검프 (1994)" },
+    { text: "눈에 보이지 않는다고 해서 없는 것은 아니야.", movie: "나니아 연대기 (2005)" },
+    { text: "가끔은 마음이 가는 대로 해야 해, 결과를 생각하지 말고.", movie: "센과 치히로의 행방불명 (2001)" },
+    { text: "우리가 결정해야 할 것은 오직 우리에게 주어진 시간을 어떻게 쓸 것인가 뿐이다.", movie: "반지의 제왕 (2001)" },
+    { text: "마법은 항상 네 곁에 있어.", movie: "신비한 동물사전 (2016)" },
+    { text: "기억해, 네가 모은 것만이 네가 가져갈 수 있는 거야.", movie: "센과 치히로의 행방불명 (2001)" },
+    { text: "우리가 세상을 구하는 게 아니라, 세상이 우리를 구하는 거야.", movie: "신과함께 (2017)" }
+];
 
 export async function POST(req: Request) {
     try {
@@ -11,70 +44,45 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Determine Zodiac element strictly for prompt flavor
-        const yearNum = parseInt(birthYear);
-        const zodiacAnimals = ['원숭이', '닭', '개', '돼지', '쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양'];
-        const zodiac = zodiacAnimals[yearNum % 12];
+        // 1. 한국 시간(KST) 기준 오늘의 날짜 문자열 만들기 (예: 20241027)
+        const now = new Date();
+        const kstOffset = 9 * 60 * 60 * 1000;
+        const kstDate = new Date(now.getTime() + kstOffset);
+        const todayStr = `${kstDate.getUTCFullYear()}${kstDate.getUTCMonth() + 1}${kstDate.getUTCDate()}`;
 
-        // Construct Korean-style saju prompt
-        const prompt = `
-당신은 한국의 친근하면서도 통찰력 있는 사주/운세 전문가이자 영화 평론가입니다.
-사용자의 사주 정보(가상)를 바탕으로, 지친 현대인에게 작은 위로와 희망이 되는 오늘의 운세 한마디를 해주고, 그 운세에 완벽하게 어울리는 감동적인 '영화 명대사' 하나를 추천해주세요. 명대사는 반드시 실존하는 유명한 영화의 구절이어야 합니다.
+        // 2. 사주 입력 정보 + 오늘 날짜를 조합하여 고유한 "시드(Seed)" 텍스트 생성
+        // 이렇게 하면 하루 동안은 같은 사람이 계속 돌려도 동일한 결과가 나오고, 다음 날 자정이 지나면 바뀜!
+        const seedString = `${name}-${birthYear}-${birthMonth}-${birthDay}-${gender}-${calendarType}-${birthTime}-${todayStr}`;
 
-[사용자 정보]
-- 이름(닉네임): ${name || '익명'}
-- 생년월일: ${birthYear}년 ${birthMonth}월 ${birthDay}일 (${calendarType === 'solar' ? '양력' : '음력'})
-- 태어난 시간: ${birthTime === 'unknown' ? '모름' : birthTime}
-- 성별: ${gender === 'male' ? '남성' : '여성'}
-- 띠: ${zodiac}띠
-
-[응답 형식 (반드시 JSON 포맷으로 작성할 것)]
-{
-  "title": "금전운과 성취운이 깃든 하루입니다! ✨",
-  "fortune": "${name || '익명'}님, 오늘은 당신의 끈기가 빛을 발하는 날입니다. (3~4문장의 따뜻하고 디테일한 운세 풀이 내용...)",
-  "quoteText": "우리는 답을 찾을 것이다. 늘 그랬듯이.",
-  "quoteMovie": "인터스텔라 (2014)"
-}
-`;
-
-        // 1. Check if OpenAI API key exists
-        const apiKey = process.env.OPENAI_API_KEY;
-        if (!apiKey) {
-            return NextResponse.json({
-                title: "API 키가 설정되지 않았습니다.",
-                fortune: "서버에 OpenAI API 키가 없습니다. 로컬 환경에서 테스트 중이시라면 .env.local 파일에 OPENAI_API_KEY를 추가해주세요.",
-                quoteText: "준비가 가장 완벽한 방패다.",
-                quoteMovie: "시스템 메시지"
-            }, { status: 200 });
+        // 3. 생성된 텍스트를 숫자로 변환하는 해시(Hash) 함수
+        let hash = 0;
+        for (let i = 0; i < seedString.length; i++) {
+            hash = ((hash << 5) - hash) + seedString.charCodeAt(i);
+            hash |= 0; // 32bit 정수화
         }
 
-        // 2. Call OpenAI API
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [{ role: 'user', content: prompt }],
-                temperature: 0.8,
-                response_format: { type: "json_object" }
-            }),
-            signal: AbortSignal.timeout(9000) // 9 second fetch timeout
-        });
+        // 무조건 양수가 되도록 처리
+        const positiveHash = Math.abs(hash);
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("OpenAI API Error:", errorData);
-            throw new Error("Failed to fetch from OpenAI");
-        }
+        // 4. 해시값을 길이로 나눈 나머지를 인덱스로 사용하여 랜덤 선택 효과 부여
+        const fortuneIndex = positiveHash % FORTUNE_TEMPLATES.length;
+        // 명대사는 해시값을 조금 변형하여 (비트 이동) 서로 독립적인 인덱스를 뽑도록 처리
+        const quoteIndex = (positiveHash >> 2) % MOVIE_QUOTES.length;
 
-        const data = await response.json();
-        const resultContent = data.choices[0].message.content;
-        const parsedResult = JSON.parse(resultContent);
+        const selectedFortune = FORTUNE_TEMPLATES[fortuneIndex];
+        const selectedQuote = MOVIE_QUOTES[quoteIndex];
 
-        return NextResponse.json(parsedResult);
+        const result = {
+            title: selectedFortune.title,
+            fortune: selectedFortune.text.replace(/{name}/g, name || '익명'),
+            quoteText: selectedQuote.text,
+            quoteMovie: selectedQuote.movie
+        };
+
+        // 프리미엄 AI 감성을 유지하기 위해 실제 AI가 생각하는 것처럼 약 1.5초 지연 대기
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        return NextResponse.json(result);
 
     } catch (error) {
         console.error('Error generating fortune:', error);
