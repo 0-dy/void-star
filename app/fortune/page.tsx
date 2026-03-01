@@ -405,12 +405,27 @@ export default function FortunePage() {
                                                 </span>
                                                 <div className="h-px w-10 sm:w-16 bg-gradient-to-l from-transparent to-[#d4a373]/60"></div>
                                             </div>
-                                            <div className="bg-[#fffdfa] border border-[#e6d5c3]/70 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+                                            <div className="bg-[#fffdfa] border border-[#e6d5c3]/70 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden flex flex-col">
                                                 <div className="absolute -top-4 -right-4 w-16 h-16 bg-[#fdf8f0] rounded-full opacity-60"></div>
                                                 <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-[#fdf8f0] rounded-full opacity-60"></div>
+
                                                 <p className="text-[#7a5c40] text-sm sm:text-base leading-loose break-keep whitespace-pre-wrap font-medium relative z-10 text-center">
                                                     {fortuneResult.ohaasa}
                                                 </p>
+
+                                                {fortuneResult.ohaasaJa && (
+                                                    <div className="w-full mt-4 pt-4 border-t border-[#e6d5c3]/40 relative z-10 flex flex-col">
+                                                        <p className="text-[#a8907b] text-xs sm:text-sm leading-relaxed break-keep whitespace-pre-wrap font-sans text-center">
+                                                            {fortuneResult.ohaasaJa}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                <div className="relative z-10 w-full flex justify-end mt-4">
+                                                    <span className="text-[#c9b5a1] text-[10px] sm:text-xs tracking-tighter">
+                                                        출처: TV Asahi Ohaasa
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     )}

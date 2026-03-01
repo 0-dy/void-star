@@ -71,16 +71,33 @@ async function fetchOhaasaFortune(zodiac: string) {
                     .replace(/今日の順位/g, '')
                     .trim();
 
-                // Translate the static headers for the user
-                let formattedStr = cleanedText
+                // Format the original Japanese string
+                let formattedStrJa = cleanedText
                     .replace(jaName, `[${zodiac}]`)
-                    .replace(/\([0-9/〜]+\)/, '') // Remove the Japanese date range (e.g. 3/21〜4/19)
+                    .replace(/\([0-9/〜]+\)/, '') // Remove the Japanese date range
+                    .replace('ラッキーカラー：', '\n🎨 行運の 色: ') // Japanese static
+                    .replace('幸運のカギ：', '\n🔑 幸運の 鍵: '); // Japanese static
+
+                let translatedStr = cleanedText
+                    .replace(jaName, `[${zodiac}]`)
+                    .replace(/\([0-9/〜]+\)/, '')
                     .replace('ラッキーカラー：', '\n🎨 행운의 색상: ')
                     .replace('幸運のカギ：', '\n🔑 행운의 열쇠: ');
 
+                try {
+                    // Translate Japanese text to Korean via Google Translate free endpoint
+                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=ko&dt=t&q=${encodeURIComponent(translatedStr)}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    translatedStr = data[0].map((item: any) => item[0]).join('');
+                } catch (e) {
+                    console.error("Translation fail", e);
+                }
+
                 return {
                     source: '오하아사 (TV Asahi)',
-                    text: formattedStr.trim()
+                    textKo: translatedStr.trim(),
+                    textJa: formattedStrJa.trim()
                 };
             }
         }
@@ -88,7 +105,8 @@ async function fetchOhaasaFortune(zodiac: string) {
         // Picked up fallback if the precise string slicing fails
         return {
             source: '오하아사 (TV Asahi)',
-            text: `(현재 오하아사 방송 점검 중입니다 - ${zodiac})`
+            textKo: `(현재 오하아사 방송 점검 중입니다 - ${zodiac})`,
+            textJa: ''
         };
 
     } catch (e) {
@@ -152,7 +170,8 @@ export async function POST(req: Request) {
         const result = {
             title: selectedFortune.title,
             fortune: selectedFortune.text.replace(/{name}/g, name || '익명'),
-            ohaasa: ohaasaResult ? ohaasaResult.text : '오늘은 맑고 평온한 하루가 예상됩니다. (출처: TV Asahi Ohaasa)',
+            ohaasa: ohaasaResult ? ohaasaResult.textKo : '오늘은 맑고 평온한 하루가 예상됩니다. (출처: TV Asahi Ohaasa)',
+            ohaasaJa: ohaasaResult ? ohaasaResult.textJa : '',
             zodiac: userZodiac,
             quoteText: selectedQuote.text,
             quoteMovie: selectedQuote.movie
