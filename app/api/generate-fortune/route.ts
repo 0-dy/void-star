@@ -1,9 +1,95 @@
 import { NextResponse } from 'next/server';
 import { FORTUNE_TEMPLATES, MOVIE_QUOTES } from './data';
+import * as cheerio from 'cheerio';
 
 // 10초 타임아웃 방지
 export const maxDuration = 10;
 export const dynamic = 'force-dynamic';
+
+// Ohaasa Zodiac mapping from standard Korean zodiac signs to tv-asahi IDs
+// Ohaasa Zodiac mapping from standard Korean zodiac signs to Japanese names
+const JA_ZODIAC: Record<string, string> = {
+    '양자리': 'おひつじ座',
+    '황소자리': 'おうし座',
+    '쌍둥이자리': 'ふたご座',
+    '게자리': 'かに座',
+    '사자자리': 'しし座',
+    '처녀자리': 'おとめ座',
+    '천칭자리': 'てんびん座',
+    '전갈자리': 'さそり座',
+    '사수자리': 'いて座',
+    '염소자리': 'やぎ座',
+    '물병자리': 'みずがめ座',
+    '물고기자리': 'うお座'
+};
+
+async function fetchOhaasaFortune(zodiac: string) {
+    try {
+        const response = await fetch('https://www.tv-asahi.co.jp/goodmorning/uranai/', {
+            next: { revalidate: 3600 } // Cache for 1 hour
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch Ohaasa');
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        const jaName = JA_ZODIAC[zodiac] || 'おひつじ座';
+        let extractedText = '';
+
+        // Scan divs for the matching Japanese string containing the fortune data
+        $('div').each((i, el) => {
+            const text = $(el).text().trim().replace(/\s+/g, ' ');
+            // The Ohaasa fortune block usually contains the zodiac name and the lucky color string
+            if (text.includes(jaName) && text.includes('ラッキーカラー')) {
+                if (!extractedText) {
+                    extractedText = text;
+                }
+            }
+        });
+
+        if (extractedText) {
+            // "おひつじ座(3/21〜4/19) 金運に大きなチャンスが。... ラッキーカラー：黄色 幸運のカギ：ねこカフェ"
+            // Translate the static headers for the user
+            let formattedStr = extractedText
+                .replace(jaName, `[${zodiac}]`)
+                .replace(/\([0-9/〜]+\)/, '') // Remove (3/21〜4/19)
+                .replace('ラッキーカラー：', '\n🎨 행운의 색상: ')
+                .replace('幸運のカギ：', '\n🔑 행운의 열쇠: ')
+                .replace('今日の順位▲', '')
+                .replace('今日の順位▼', '');
+
+            return {
+                source: '오하아사 (TV Asahi)',
+                text: formattedStr.trim()
+            };
+        }
+
+        // Fallback if the parser misses
+        return {
+            source: '오하아사 (TV Asahi)',
+            text: `(현재 오하아사 방송 점검 중입니다 - ${zodiac})`
+        };
+
+    } catch (e) {
+        return null;
+    }
+}
+
+function getZodiacSign(month: number, day: number): string {
+    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return '양자리';
+    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return '황소자리';
+    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return '쌍둥이자리';
+    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return '게자리';
+    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return '사자자리';
+    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return '처녀자리';
+    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return '천칭자리';
+    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return '전갈자리';
+    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return '사수자리';
+    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return '염소자리';
+    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return '물병자리';
+    return '물고기자리'; // Feb 19 - Mar 20
+}
 
 export async function POST(req: Request) {
     try {
@@ -13,6 +99,13 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
+        const monthNum = parseInt(birthMonth);
+        const dayNum = parseInt(birthDay);
+        const userZodiac = getZodiacSign(monthNum, dayNum);
+
+        // Fetch Ohaasa
+        const ohaasaResult = await fetchOhaasaFortune(userZodiac);
+
         // 1. 한국 시간(KST) 기준 오늘의 날짜 문자열 만들기 (예: 20241027)
         const now = new Date();
         const kstOffset = 9 * 60 * 60 * 1000;
@@ -20,36 +113,34 @@ export async function POST(req: Request) {
         const todayStr = `${kstDate.getUTCFullYear()}${kstDate.getUTCMonth() + 1}${kstDate.getUTCDate()}`;
 
         // 2. 사주 입력 정보 + 오늘 날짜를 조합하여 고유한 "시드(Seed)" 텍스트 생성
-        // 이렇게 하면 하루 동안은 같은 사람이 계속 돌려도 동일한 결과가 나오고, 다음 날 자정이 지나면 바뀜!
         const seedString = `${name}-${birthYear}-${birthMonth}-${birthDay}-${gender}-${calendarType}-${birthTime}-${todayStr}`;
 
-        // 3. 생성된 텍스트를 숫자로 변환하는 해시(Hash) 함수
         let hash = 0;
         for (let i = 0; i < seedString.length; i++) {
             hash = ((hash << 5) - hash) + seedString.charCodeAt(i);
-            hash |= 0; // 32bit 정수화
+            hash |= 0;
         }
 
-        // 무조건 양수가 되도록 처리
         const positiveHash = Math.abs(hash);
 
-        // 4. 해시값을 길이로 나눈 나머지를 인덱스로 사용하여 랜덤 선택 효과 부여
         const fortuneIndex = positiveHash % FORTUNE_TEMPLATES.length;
-        // 명대사는 해시값을 조금 변형하여 (비트 이동) 서로 독립적인 인덱스를 뽑도록 처리
         const quoteIndex = (positiveHash >> 2) % MOVIE_QUOTES.length;
 
         const selectedFortune = FORTUNE_TEMPLATES[fortuneIndex];
         const selectedQuote = MOVIE_QUOTES[quoteIndex];
 
+        // Combine traditional fortune with Ohaasa
+        const finalFortuneText = `${selectedFortune.text.replace(/{name}/g, name || '익명')}
+
+⭐ [오하아사 톡] ${userZodiac}의 오늘: 
+${ohaasaResult ? ohaasaResult.text : '오늘은 맑고 평온한 하루가 예상됩니다. (출처: TV Asahi Ohaasa)'}`;
+
         const result = {
             title: selectedFortune.title,
-            fortune: selectedFortune.text.replace(/{name}/g, name || '익명'),
+            fortune: finalFortuneText,
             quoteText: selectedQuote.text,
             quoteMovie: selectedQuote.movie
         };
-
-        // 프리미엄 AI 감성을 유지하기 위해 실제 AI가 생각하는 것처럼 약 1.5초 지연 대기
-        await new Promise(resolve => setTimeout(resolve, 1500));
 
         return NextResponse.json(result);
 
