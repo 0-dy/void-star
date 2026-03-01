@@ -34,6 +34,18 @@ function HomeContent() {
     }
   }, [genreFromUrl]);
 
+  // Handle body scroll locking when modal is open
+  useEffect(() => {
+    if (quote) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [quote]);
+
   const handleGenerate = async () => {
     const trimmedMood = mood.trim();
     if (!trimmedMood) {
@@ -199,54 +211,76 @@ function HomeContent() {
           </button>
         </div>
 
-        {/* Result Component (Initial Mockup) */}
+        {/* Result Component (Modal Popup) */}
         {quote && (
-          <div className="mt-10 sm:mt-12 w-full animate-fade-in-up">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in-up">
+            {/* Dark Overlay */}
             <div
-              ref={quoteCardRef}
-              className="relative overflow-hidden rounded-2xl bg-[#fffefc] border-2 border-[#e6d5c3] p-6 sm:p-10 shadow-xl shadow-[#d4a373]/10"
-            >
-              {/* Subtle paper texture overlay */}
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 20 20\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'%23000000\\' fill-opacity=\\'1\\' fill-rule=\\'evenodd\\'%3E%3Ccircle cx=\\'3\\' cy=\\'3\\' r=\\'3\\'/%3E%3Ccircle cx=\\'13\\' cy=\\'13\\' r=\\'3\\'/%3E%3C/g%3E%3C/svg%3E')" }}></div>
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+              onClick={() => setQuote("")}
+            ></div>
 
-              <div className="relative z-10 break-keep text-center">
-                <span className="text-3xl sm:text-4xl text-[#d4a373] opacity-30 absolute -top-4 -left-2 font-serif">"</span>
-                <p className="text-xl sm:text-3xl font-serif text-[#4a3627] leading-relaxed mb-6 sm:mb-8 relative z-10 px-2 sm:px-4 mt-2 font-bold tracking-tight">
-                  {quote.split('\n')[0]}
-                </p>
-                <span className="text-3xl sm:text-4xl text-[#d4a373] opacity-30 absolute bottom-6 right-0 font-serif">"</span>
-                <p className="text-right text-[#8b5a2b] font-medium tracking-widest text-xs sm:text-sm uppercase mt-2">
-                  {quote.split('\n').length > 1 ? quote.split('\n')[1] : ""}
-                </p>
-              </div>
-            </div>
+            {/* Modal Content */}
+            <div className="relative w-full max-w-2xl bg-[#fdf8f0] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
 
-            <div className="flex flex-col sm:flex-row justify-between items-center mt-6 px-1 gap-3 sm:gap-0">
-              <div className="flex gap-2 w-full sm:w-auto">
-                <button
-                  onClick={handleDownloadImage}
-                  className="flex-1 sm:flex-none text-sm font-bold bg-white text-[#8b5a2b] px-4 py-2.5 rounded-full hover:bg-[#faedcd] transition-all border-2 border-[#d4a373]/30 shadow-sm hover:shadow-md"
-                >
-                  저장하기
-                </button>
-                <button
-                  onClick={handleShareImage}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-1 text-sm font-bold bg-[#8b5a2b] text-white px-4 py-2.5 rounded-full shadow-md shadow-[#8b5a2b]/30 hover:shadow-[#8b5a2b]/50 transition-all hover:-translate-y-0.5"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
-                  </svg>
-                  공유하기
-                </button>
-              </div>
-              <a
-                href="https://buymeacoffee.com/lemon1106"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-bold bg-[#ee9b00] text-white px-5 py-2.5 rounded-full shadow-md shadow-[#ee9b00]/30 hover:shadow-[#ee9b00]/50 transition-all hover:-translate-y-0.5"
+              {/* Close Button */}
+              <button
+                onClick={() => setQuote("")}
+                className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center bg-white/50 text-[#8b5a2b] hover:bg-[#8b5a2b] hover:text-white rounded-full transition-colors"
               >
-                <span>☕</span> 개발자에게 커피 한 잔
-              </a>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+
+              {/* Quote Card */}
+              <div
+                ref={quoteCardRef}
+                className="relative overflow-hidden bg-[#fffefc] p-8 sm:p-12"
+              >
+                {/* Subtle paper texture overlay */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 20 20\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'%23000000\\' fill-opacity=\\'1\\' fill-rule=\\'evenodd\\'%3E%3Ccircle cx=\\'3\\' cy=\\'3\\' r=\\'3\\'/%3E%3Ccircle cx=\\'13\\' cy=\\'13\\' r=\\'3\\'/%3E%3C/g%3E%3C/svg%3E')" }}></div>
+
+                <div className="relative z-10 break-keep text-center">
+                  <span className="text-3xl sm:text-4xl text-[#d4a373] opacity-30 absolute -top-4 -left-2 font-serif">"</span>
+                  <p className="text-xl sm:text-3xl font-serif text-[#4a3627] leading-relaxed mb-6 sm:mb-8 relative z-10 px-2 sm:px-4 mt-2 font-bold tracking-tight">
+                    {quote.split('\n')[0]}
+                  </p>
+                  <span className="text-3xl sm:text-4xl text-[#d4a373] opacity-30 absolute bottom-6 right-0 font-serif">"</span>
+                  <p className="text-right text-[#8b5a2b] font-medium tracking-widest text-xs sm:text-sm uppercase mt-2">
+                    {quote.split('\n').length > 1 ? quote.split('\n')[1] : ""}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="bg-[#faedcd] border-t border-[#e6d5c3] p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={handleDownloadImage}
+                    className="flex-1 sm:flex-none text-sm font-bold bg-white text-[#8b5a2b] px-4 py-3 rounded-xl hover:bg-[#fffefc] transition-all border border-[#d4a373]/30 shadow-sm hover:shadow-md"
+                  >
+                    저장하기
+                  </button>
+                  <button
+                    onClick={handleShareImage}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1 text-sm font-bold bg-[#8b5a2b] text-white px-4 py-3 rounded-xl shadow-md shadow-[#8b5a2b]/30 hover:shadow-[#8b5a2b]/50 transition-all hover:-translate-y-0.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                    </svg>
+                    공유하기
+                  </button>
+                </div>
+                <a
+                  href="https://buymeacoffee.com/lemon1106"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-bold bg-[#ee9b00] text-white px-5 py-3 rounded-xl shadow-md shadow-[#ee9b00]/30 hover:shadow-[#ee9b00]/50 transition-all hover:-translate-y-0.5"
+                >
+                  <span>☕</span> 커피 한 잔 후원
+                </a>
+              </div>
             </div>
           </div>
         )}
