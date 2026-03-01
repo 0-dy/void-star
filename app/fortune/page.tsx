@@ -414,7 +414,10 @@ export default function FortunePage() {
                                                 </p>
 
                                                 {fortuneResult.ohaasaJa && (
-                                                    <div className="w-full mt-4 pt-4 border-t border-[#e6d5c3]/40 relative z-10 flex flex-col">
+                                                    <div className="w-full mt-6 pt-5 border-t border-[#e6d5c3]/50 relative z-10 flex flex-col items-center">
+                                                        <span className="absolute -top-[11px] bg-[#fffdfa] px-3 text-[10px] sm:text-xs font-bold text-[#b5835a] tracking-widest rounded-full border border-[#e6d5c3]/50 shadow-sm">
+                                                            원문
+                                                        </span>
                                                         <p className="text-[#a8907b] text-xs sm:text-sm leading-relaxed break-keep whitespace-pre-wrap font-sans text-center">
                                                             {fortuneResult.ohaasaJa}
                                                         </p>
