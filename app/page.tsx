@@ -264,11 +264,9 @@ function HomeContent() {
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 20 20\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'%23000000\\' fill-opacity=\\'1\\' fill-rule=\\'evenodd\\'%3E%3Ccircle cx=\\'3\\' cy=\\'3\\' r=\\'3\\'/%3E%3Ccircle cx=\\'13\\' cy=\\'13\\' r=\\'3\\'/%3E%3C/g%3E%3C/svg%3E')" }}></div>
 
                 <div className="relative z-10 break-keep text-center">
-                  <span className="text-3xl sm:text-4xl text-[#d4a373] opacity-30 absolute -top-4 -left-2 font-serif">"</span>
                   <p className="text-xl sm:text-3xl font-serif text-[#4a3627] leading-relaxed mb-6 sm:mb-8 relative z-10 px-2 sm:px-4 mt-2 font-bold tracking-tight">
                     {quote.split('\n')[0]}
                   </p>
-                  <span className="text-3xl sm:text-4xl text-[#d4a373] opacity-30 absolute bottom-6 right-0 font-serif">"</span>
                   <p className="text-right text-[#8b5a2b] font-medium tracking-widest text-xs sm:text-sm uppercase mt-2">
                     {quote.split('\n').length > 1 ? quote.split('\n')[1] : ""}
                   </p>
