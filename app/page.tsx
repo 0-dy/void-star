@@ -117,22 +117,26 @@ function HomeContent() {
 
       if (!blob) throw new Error("Failed to generate image blob");
 
-      const file = new File([blob], `my-mood-quote-${Date.now()}.png`, { type: "image/png" });
+      // Check if user is in an In-App Browser (Kakao, Instagram, Line, etc.)
+      const isIab = /KAKAOTALK|Instagram|FBAV|Line/i.test(navigator.userAgent);
 
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: "명대사 포춘쿠키",
-            text: "오늘 내 기분에 딱 맞는 영화 명대사!",
-          });
-          return;
-        } catch (shareError: any) {
-          // Ignore AbortError (user cancelled share)
-          if (shareError.name !== 'AbortError') {
-            console.error("Native share failed, falling back to clipboard", shareError);
-          } else {
+      if (!isIab && navigator.canShare) {
+        // Try native file sharing for normal browsers (Chrome, Safari)
+        const file = new File([blob], `my-mood-quote-${Date.now()}.png`, { type: "image/png" });
+        if (navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: "명대사 포춘쿠키",
+              text: "오늘 내 기분에 딱 맞는 영화 명대사!",
+            });
             return;
+          } catch (shareError: any) {
+            if (shareError.name !== 'AbortError') {
+              console.error("Native share failed", shareError);
+            } else {
+              return;
+            }
           }
         }
       }
