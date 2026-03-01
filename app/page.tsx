@@ -41,8 +41,11 @@ function HomeContent() {
       alert("오늘의 기분이나 상황을 입력해주세요!");
       return;
     }
-    if (trimmedMood.length <= 5) {
-      alert("기분이나 상황을 조금만 더 길게 (5글자 초과) 적어주세요!");
+
+    // 단순 반복(ㅋㅋㅋ, ㅎㅎㅎ), 무의미한 자음/모음, 혹은 흔한 키보드 막치기(asdf, ㅁㄴㅇㄹ) 방지
+    const gibberishPattern = /^(?:[ㄱ-ㅎㅏ-ㅣ]+|asdf.*|qwer.*|ㅁㄴㅇㄹ.*|(.)\1{2,})$/i;
+    if (gibberishPattern.test(trimmedMood.replace(/\s/g, ''))) {
+      alert("조금 더 구체적인 기분이나 상황의 단어를 적어주세요!");
       return;
     }
 
