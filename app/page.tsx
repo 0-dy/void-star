@@ -93,6 +93,36 @@ function HomeContent() {
     }
   };
 
+  const handleShareImage = async () => {
+    if (!quoteCardRef.current) return;
+
+    try {
+      const { toBlob } = await import("html-to-image");
+      const blob = await toBlob(quoteCardRef.current, {
+        backgroundColor: "#fdf8f0", // Match new warm background
+        pixelRatio: 2, // Higher quality
+      });
+
+      if (!blob) throw new Error("Failed to generate image blob");
+
+      const file = new File([blob], `my-mood-quote-${Date.now()}.png`, { type: "image/png" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "명대사 포춘쿠키",
+          text: "오늘 내 기분에 딱 맞는 영화 명대사!",
+        });
+      } else {
+        // Fallback if file sharing is not supported
+        alert("이 브라우저/기기에서는 기본 공유 기능을 지원하지 않습니다. 😢 이미지 저장 후 공유해주세요!");
+      }
+    } catch (error) {
+      console.error("Error sharing image:", error);
+      alert("이미지 공유 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <main className="min-h-screen w-full relative overflow-hidden flex flex-col items-center justify-center p-4 bg-[#fdf8f0]">
       {/* Background Ornaments */}
@@ -192,12 +222,23 @@ function HomeContent() {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between items-center mt-6 px-1 gap-3 sm:gap-0">
-              <button
-                onClick={handleDownloadImage}
-                className="w-full sm:w-auto text-sm font-bold bg-white text-[#8b5a2b] px-5 py-2.5 rounded-full hover:bg-[#faedcd] transition-all border-2 border-[#d4a373]/30 shadow-sm hover:shadow-md"
-              >
-                이미지 저장하기
-              </button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handleDownloadImage}
+                  className="flex-1 sm:flex-none text-sm font-bold bg-white text-[#8b5a2b] px-4 py-2.5 rounded-full hover:bg-[#faedcd] transition-all border-2 border-[#d4a373]/30 shadow-sm hover:shadow-md"
+                >
+                  저장하기
+                </button>
+                <button
+                  onClick={handleShareImage}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1 text-sm font-bold bg-[#8b5a2b] text-white px-4 py-2.5 rounded-full shadow-md shadow-[#8b5a2b]/30 hover:shadow-[#8b5a2b]/50 transition-all hover:-translate-y-0.5"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                  </svg>
+                  공유하기
+                </button>
+              </div>
               <a
                 href="https://buymeacoffee.com/lemon1106"
                 target="_blank"
