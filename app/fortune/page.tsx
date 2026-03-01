@@ -413,9 +413,14 @@ export default function FortunePage() {
                                                 <div className="absolute -top-4 -right-4 w-16 h-16 bg-[#fdf8f0] rounded-full opacity-60"></div>
                                                 <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-[#fdf8f0] rounded-full opacity-60"></div>
 
-                                                <p className="text-[#7a5c40] text-sm sm:text-base leading-loose break-keep whitespace-pre-wrap font-medium relative z-10 text-center">
-                                                    {fortuneResult.ohaasa}
-                                                </p>
+                                                <div className="w-full relative z-10 flex flex-col items-center mt-2 mb-2">
+                                                    <span className="bg-[#fdf8f0] px-3 py-0.5 text-[10px] sm:text-xs font-bold text-[#b5835a] tracking-widest rounded-full border border-[#e6d5c3]/50 shadow-sm mb-4">
+                                                        해석
+                                                    </span>
+                                                    <p className="text-[#7a5c40] text-sm sm:text-base leading-loose break-keep whitespace-pre-wrap font-medium text-center">
+                                                        {fortuneResult.ohaasa}
+                                                    </p>
+                                                </div>
 
                                                 {fortuneResult.ohaasaJa && (
                                                     <div className="w-full mt-6 pt-5 border-t border-[#e6d5c3]/50 relative z-10 flex flex-col items-center">
@@ -442,7 +447,7 @@ export default function FortunePage() {
 
                                 <div className="text-center break-keep">
                                     <p className="text-xl sm:text-2xl font-serif text-[#4a3627] leading-relaxed mb-6 font-bold tracking-tight">
-                                        "{fortuneResult.quoteText}"
+                                        {fortuneResult.quoteText}
                                     </p>
                                     <p className="text-[#8b5a2b] font-medium tracking-widest text-xs sm:text-sm uppercase">
                                         - {fortuneResult.quoteMovie}
