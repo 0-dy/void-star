@@ -384,8 +384,17 @@ export default function FortunePage() {
                                     <span className="inline-block bg-[#fdf8f0] text-[#8b5a2b] font-bold px-4 py-1.5 rounded-full text-sm border border-[#e6d5c3] mb-4 shadow-sm">
                                         ✨ {name} 님의 오늘
                                     </span>
-                                    <h3 className="text-2xl font-black text-[#4a3627] mb-4">
-                                        {fortuneResult.title}
+                                    <h3 className="text-2xl font-black text-[#4a3627] mb-4 leading-tight">
+                                        {fortuneResult.title.includes('(') ? (
+                                            <>
+                                                {fortuneResult.title.split('(')[0].trim()}
+                                                <span className="block text-lg font-bold text-[#8b5a2b] mt-2">
+                                                    ({fortuneResult.title.split('(')[1]}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            fortuneResult.title
+                                        )}
                                     </h3>
                                     <p className="text-[#6b4e31] leading-relaxed break-keep font-medium whitespace-pre-wrap">
                                         {fortuneResult.fortune}
