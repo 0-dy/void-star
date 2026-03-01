@@ -387,9 +387,31 @@ export default function FortunePage() {
                                     <h3 className="text-2xl font-black text-[#4a3627] mb-4">
                                         {fortuneResult.title}
                                     </h3>
-                                    <p className="text-[#6b4e31] leading-relaxed break-keep font-medium">
+                                    <p className="text-[#6b4e31] leading-relaxed break-keep font-medium whitespace-pre-wrap">
                                         {fortuneResult.fortune}
                                     </p>
+
+                                    {fortuneResult.ohaasa && (
+                                        <div className="mt-10 mb-2">
+                                            <div className="flex items-center justify-center gap-3 mb-5">
+                                                <div className="h-px w-10 sm:w-16 bg-gradient-to-r from-transparent to-[#d4a373]/60"></div>
+                                                <span className="text-xs sm:text-sm font-bold text-[#b5835a] tracking-wider flex items-center gap-1.5">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                    </svg>
+                                                    [오하아사 톡] {fortuneResult.zodiac}의 오늘
+                                                </span>
+                                                <div className="h-px w-10 sm:w-16 bg-gradient-to-l from-transparent to-[#d4a373]/60"></div>
+                                            </div>
+                                            <div className="bg-[#fffdfa] border border-[#e6d5c3]/70 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+                                                <div className="absolute -top-4 -right-4 w-16 h-16 bg-[#fdf8f0] rounded-full opacity-60"></div>
+                                                <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-[#fdf8f0] rounded-full opacity-60"></div>
+                                                <p className="text-[#7a5c40] text-sm sm:text-base leading-loose break-keep whitespace-pre-wrap font-medium relative z-10 text-center">
+                                                    {fortuneResult.ohaasa}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="w-full h-px bg-gradient-to-r from-transparent via-[#d4a373]/50 to-transparent my-8"></div>

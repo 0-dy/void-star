@@ -149,15 +149,11 @@ export async function POST(req: Request) {
         const selectedFortune = FORTUNE_TEMPLATES[fortuneIndex];
         const selectedQuote = MOVIE_QUOTES[quoteIndex];
 
-        // Combine traditional fortune with Ohaasa
-        const finalFortuneText = `${selectedFortune.text.replace(/{name}/g, name || '익명')}
-
-⭐ [오하아사 톡] ${userZodiac}의 오늘: 
-${ohaasaResult ? ohaasaResult.text : '오늘은 맑고 평온한 하루가 예상됩니다. (출처: TV Asahi Ohaasa)'}`;
-
         const result = {
             title: selectedFortune.title,
-            fortune: finalFortuneText,
+            fortune: selectedFortune.text.replace(/{name}/g, name || '익명'),
+            ohaasa: ohaasaResult ? ohaasaResult.text : '오늘은 맑고 평온한 하루가 예상됩니다. (출처: TV Asahi Ohaasa)',
+            zodiac: userZodiac,
             quoteText: selectedQuote.text,
             quoteMovie: selectedQuote.movie
         };
