@@ -376,12 +376,12 @@ export default function FortunePage() {
                         <div ref={resultCardRef} className="relative overflow-hidden rounded-3xl bg-[#fffefc] border-2 border-[#e6d5c3] shadow-xl shadow-[#d4a373]/10">
                             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 20 20\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'%23000000\\' fill-opacity=\\'1\\' fill-rule=\\'evenodd\\'%3E%3Ccircle cx=\\'3\\' cy=\\'3\\' r=\\'3\\'/%3E%3Ccircle cx=\\'13\\' cy=\\'13\\' r=\\'3\\'/%3E%3C/g%3E%3C/svg%3E')" }}></div>
 
-                            <div className="p-8 sm:p-12 relative z-10">
-                                <div className="text-center mb-6">
-                                    <span className="inline-block bg-[#fdf8f0] text-[#8b5a2b] font-bold px-4 py-1.5 rounded-full text-sm border border-[#e6d5c3] mb-4 shadow-sm">
+                            <div className="px-6 py-6 sm:px-12 sm:py-10 relative z-10">
+                                <div className="text-center mb-5">
+                                    <span className="inline-block bg-[#fdf8f0] text-[#8b5a2b] font-bold px-4 py-1.5 rounded-full text-sm border border-[#e6d5c3] mb-3 shadow-sm">
                                         ✨ {name} 님의 오늘
                                     </span>
-                                    <h3 className="text-2xl font-black text-[#4a3627] mb-4 leading-tight">
+                                    <h3 className="text-2xl font-black text-[#4a3627] mb-3 leading-tight">
                                         {fortuneResult.title.includes('(') ? (
                                             <>
                                                 {fortuneResult.title.split('(')[0].trim()}
@@ -398,8 +398,8 @@ export default function FortunePage() {
                                     </p>
 
                                     {fortuneResult.ohaasa && (
-                                        <div className="mt-10 mb-2">
-                                            <div className="flex items-center justify-center gap-3 mb-5">
+                                        <div className="mt-7 mb-2">
+                                            <div className="flex items-center justify-center gap-3 mb-4">
                                                 <div className="h-px w-10 sm:w-16 bg-gradient-to-r from-transparent to-[#d4a373]/60"></div>
                                                 <span className="text-xs sm:text-sm font-bold text-[#b5835a] tracking-wider flex items-center gap-1.5">
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -443,10 +443,10 @@ export default function FortunePage() {
                                     )}
                                 </div>
 
-                                <div className="w-full h-px bg-gradient-to-r from-transparent via-[#d4a373]/50 to-transparent my-8"></div>
+                                <div className="w-full h-px bg-gradient-to-r from-transparent via-[#d4a373]/50 to-transparent my-6"></div>
 
                                 <div className="text-center break-keep">
-                                    <p className="text-xl sm:text-2xl font-serif text-[#4a3627] leading-relaxed mb-6 font-bold tracking-tight">
+                                    <p className="text-xl sm:text-2xl font-serif text-[#4a3627] leading-relaxed mb-4 font-bold tracking-tight">
                                         {fortuneResult.quoteText}
                                     </p>
                                     <p className="text-[#8b5a2b] font-medium tracking-widest text-xs sm:text-sm uppercase">
