@@ -349,11 +349,13 @@ function HomeContent() {
         )}
       </div>
 
-      {/* Quiz Banner */}
-      <div className="w-full max-w-2xl mt-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+      {/* Mini Games Section */}
+      <div className="w-full max-w-2xl mt-8 space-y-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+
+        {/* Quiz Banner */}
         <Link
           href="/quiz"
-          className="group relative overflow-hidden bg-gradient-to-r from-[#8b5a2b] to-[#b07d4f] rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-[#8b5a2b]/20 transition-transform hover:-translate-y-1 hover:shadow-xl"
+          className="group relative overflow-hidden bg-gradient-to-r from-[#8b5a2b] to-[#b07d4f] rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-[#8b5a2b]/20 transition-transform hover:-translate-y-1 hover:shadow-xl block"
         >
           {/* Decorative graphic hints */}
           <div className="absolute left-[-10%] bottom-[-50%] opacity-10 group-hover:scale-110 transition-transform duration-700">
@@ -366,7 +368,7 @@ function HomeContent() {
             </div>
             <div className="text-left">
               <h3 className="text-white font-black text-xl mb-1 flex items-center gap-2">
-                미니게임 : 영화 명대사 O/X 퀴즈 <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">NEW</span>
+                미니게임 : 영화 명대사 O/X 퀴즈
               </h3>
               <p className="text-[#fdf8f0]/90 text-sm font-medium">당신의 영화 지식을 테스트해보세요! (10연승 도전)</p>
             </div>
@@ -374,6 +376,35 @@ function HomeContent() {
 
           <div className="relative z-10 hidden sm:flex bg-white/20 hover:bg-white/30 transition-colors p-3 rounded-full backdrop-blur-sm shadow-inner group-hover:scale-110 duration-300">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+
+        {/* Fortune Banner */}
+        <Link
+          href="/fortune"
+          className="group relative overflow-hidden bg-gradient-to-r from-[#1e3a8a] to-[#312e81] rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-[#1e3a8a]/20 transition-transform hover:-translate-y-1 hover:shadow-xl block border border-[#4f46e5]/30"
+        >
+          {/* Decorative graphic hints */}
+          <div className="absolute right-[-5%] top-[-20%] opacity-10 group-hover:rotate-12 transition-transform duration-700">
+            <span className="text-[120px] font-black pointer-events-none">✨</span>
+          </div>
+
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm ring-1 ring-white/20">
+              <span className="text-3xl">🥠</span>
+            </div>
+            <div className="text-left">
+              <h3 className="text-white font-black text-xl mb-1 flex items-center gap-2">
+                오늘 나의 운세와 명대사 <span className="bg-[#fbbf24] text-[#78350f] text-[10px] px-2 py-0.5 rounded-full font-black animate-pulse shadow-sm">NEW</span>
+              </h3>
+              <p className="text-[#e2e8f0] text-sm font-medium">사주 정보를 바탕으로 나만의 맞춤 위로를 받아보세요.</p>
+            </div>
+          </div>
+
+          <div className="relative z-10 hidden sm:flex bg-white/10 hover:bg-white/20 transition-colors p-3 rounded-full backdrop-blur-sm shadow-inner group-hover:scale-110 duration-300 ring-1 ring-white/20">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#fbbf24]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
             </svg>
           </div>
