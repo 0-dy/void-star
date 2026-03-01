@@ -35,37 +35,57 @@ async function fetchOhaasaFortune(zodiac: string) {
         const $ = cheerio.load(html);
 
         const jaName = JA_ZODIAC[zodiac] || 'おひつじ座';
-        let extractedText = '';
+        let fullBlock = '';
 
         // Scan divs for the matching Japanese string containing the fortune data
         $('div').each((i, el) => {
             const text = $(el).text().trim().replace(/\s+/g, ' ');
-            // The Ohaasa fortune block usually contains the zodiac name and the lucky color string
             if (text.includes(jaName) && text.includes('ラッキーカラー')) {
-                if (!extractedText) {
-                    extractedText = text;
+                // Save the text block if it is valid
+                if (!fullBlock || text.length > fullBlock.length) {
+                    fullBlock = text;
                 }
             }
         });
 
-        if (extractedText) {
-            // "おひつじ座(3/21〜4/19) 金運に大きなチャンスが。... ラッキーカラー：黄色 幸運のカギ：ねこカフェ"
-            // Translate the static headers for the user
-            let formattedStr = extractedText
-                .replace(jaName, `[${zodiac}]`)
-                .replace(/\([0-9/〜]+\)/, '') // Remove (3/21〜4/19)
-                .replace('ラッキーカラー：', '\n🎨 행운의 색상: ')
-                .replace('幸運のカギ：', '\n🔑 행운의 열쇠: ')
-                .replace('今日の順位▲', '')
-                .replace('今日の順位▼', '');
+        if (fullBlock) {
+            // Find all instances where a new Zodiac sign starts with its date bounds: e.g. おひつじ座(3/21〜4/19)
+            const regex = /(おひつじ座|おうし座|ふたご座|かに座|しし座|おとめ座|てんびん座|さそり座|いて座|やぎ座|みずがめ座|うお座)\([0-9]+\/[0-9]+〜[0-9]+\/[0-9]+\)/g;
+            const matches = [...fullBlock.matchAll(regex)];
 
-            return {
-                source: '오하아사 (TV Asahi)',
-                text: formattedStr.trim()
-            };
+            let isolatedText = '';
+            for (let i = 0; i < matches.length; i++) {
+                if (matches[i][1] === jaName) {
+                    const startIndex = matches[i].index;
+                    const endIndex = (i + 1 < matches.length) ? matches[i + 1].index : fullBlock.length;
+                    isolatedText = fullBlock.substring(startIndex, endIndex);
+                    break;
+                }
+            }
+
+            if (isolatedText) {
+                // Clear any trailing Japanese rank debris left over from splitting
+                const cleanedText = isolatedText
+                    .replace(/今日の順位▲/g, '')
+                    .replace(/今日の順位▼/g, '')
+                    .replace(/今日の順位/g, '')
+                    .trim();
+
+                // Translate the static headers for the user
+                let formattedStr = cleanedText
+                    .replace(jaName, `[${zodiac}]`)
+                    .replace(/\([0-9/〜]+\)/, '') // Remove the Japanese date range (e.g. 3/21〜4/19)
+                    .replace('ラッキーカラー：', '\n🎨 행운의 색상: ')
+                    .replace('幸運のカギ：', '\n🔑 행운의 열쇠: ');
+
+                return {
+                    source: '오하아사 (TV Asahi)',
+                    text: formattedStr.trim()
+                };
+            }
         }
 
-        // Fallback if the parser misses
+        // Picked up fallback if the precise string slicing fails
         return {
             source: '오하아사 (TV Asahi)',
             text: `(현재 오하아사 방송 점검 중입니다 - ${zodiac})`

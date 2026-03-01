@@ -6,30 +6,48 @@ async function testFetch() {
         const html = await response.text();
         const $ = cheerio.load(html);
 
-        // Target: おひつじ座
-        let result = {};
+        const jaName = 'さそり座'; // Scorpio
+        let extractedText = '';
 
         $('div').each((i, el) => {
             const text = $(el).text().trim().replace(/\s+/g, ' ');
-            if (text.includes('おひつじ座') && text.includes('ラッキーカラー')) {
-                // This seems to be the fortune block
-                // For example: "おひつじ座(3/21〜4/19) 金運に大きなチャンスが。... ラッキーカラー：黄色 幸運のカギ：ねこカフェ 今日の順位▲"
-                if (!result.text) {
-                    result.raw = text;
+            if (text.includes(jaName) && text.includes('ラッキーカラー')) {
+                if (!extractedText || text.length < extractedText.length) { // Try to get the smallest containing block
+                    extractedText = text;
                 }
             }
         });
 
-        console.log("Raw matched string:", result.raw);
+        console.log("Full block length:", extractedText.length);
 
-        // Let's iterate all list items that show rank if possible
-        let ranks = [];
-        $('.uranai_box').each((i, el) => {
-            ranks.push($(el).text().trim().replace(/\s+/g, ' '));
-        });
+        // Let's try to slice out just the target Zodiac.
+        // It starts with `jaName(` e.g., さそり座(10/24〜11/22)
+        // And ends before the next Zodiac pattern, or end of string.
 
-        // Actually, tv asahi ranks are often in <li> or specific wrappers 
-        // Let's just grab the whole block containing the star sign
+        const zodiacPattern = new RegExp(`${jaName}\\([0-9]+\\/[0-9]+〜[0-9]+\\/[0-9]+\\)(.*?)(?:[おかふしてさいやみう][ひうたにいとんそげずお][つつご座んりぎが][じご座座座座座座め][座座\\s]|$)`);
+
+        // Wait, instead of complex lookahead, let's just split by all known zodiac patterns with dates:
+        // /([おかふしてさいやみう][ひうたにいとんそげずお][つつご座んりぎが][じご座座座座座座め][座座]?\([0-9]+\/[0-9]+〜[0-9]+\/[0-9]+\))/
+        const splitRegex = /(おひつじ座|おうし座|ふたご座|かに座|しし座|おとめ座|てんびん座|さそり座|いて座|やぎ座|みずがめ座|うお座)\([0-9]+\/[0-9]+〜[0-9]+\/[0-9]+\)/g;
+
+        // Let's use matchAll to find the boundaries
+        const matches = [...extractedText.matchAll(/(おひつじ座|おうし座|ふたご座|かに座|しし座|おとめ座|てんびん座|さそり座|いて座|やぎ座|みずがめ座|うお座)\([0-9]+\/[0-9]+〜[0-9]+\/[0-9]+\)/g)];
+
+        let targetText = '';
+        for (let i = 0; i < matches.length; i++) {
+            if (matches[i][1] === jaName) {
+                const startIndex = matches[i].index;
+                const endIndex = (i + 1 < matches.length) ? matches[i + 1].index : extractedText.length;
+                targetText = extractedText.substring(startIndex, endIndex);
+                break;
+            }
+        }
+
+        if (targetText) {
+            console.log("SUCCESSFULLY EXTRACTED:", targetText);
+        } else {
+            console.log("Failed to match substring.");
+        }
 
     } catch (e) {
         console.error(e);
