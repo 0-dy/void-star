@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export const maxDuration = 10; // 10 seconds timeout for Vercel Hobby
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
     try {
