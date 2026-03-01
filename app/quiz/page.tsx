@@ -303,9 +303,8 @@ export default function Quiz() {
                         >
                             다시 도전하기 🔄
                         </button>
-
                         <a
-                            href="https://www.buymeacoffee.com/0dymood"
+                            href="https://buymeacoffee.com/lemon1106"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 bg-[#FFDD00] text-black px-6 py-3 rounded-xl font-bold hover:bg-[#FFEA00] transition-colors w-full max-w-sm shadow-sm"
