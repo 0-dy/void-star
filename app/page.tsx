@@ -475,6 +475,14 @@ export default function FortunePage() {
                                     </svg>
                                     공유하기
                                 </button>
+                                <a
+                                    href="https://buymeacoffee.com/lemon1106"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full sm:w-auto font-bold flex items-center justify-center gap-2 bg-[#ee9b00] text-white px-6 py-3 rounded-xl shadow-md hover:shadow-lg hover:bg-[#d68b00] transition-all"
+                                >
+                                    <span>☕</span> 커피 한 잔 후원
+                                </a>
                             </div>
                         </div>
                     </div>
