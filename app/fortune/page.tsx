@@ -299,7 +299,12 @@ export default function FortunePage() {
                             {/* Date of Birth */}
                             <div>
                                 <label className="block text-sm font-bold text-[#5c4033] mb-2 ml-1">생년월일</label>
-                                <div className="relative">
+                                <div className="relative w-full border border-[#d4a373]/50 rounded-2xl bg-white/70 shadow-sm overflow-hidden flex items-center justify-center transition-all focus-within:ring-2 focus-within:ring-[#d4a373]" style={{ minHeight: '52px' }}>
+                                    <span className={`font-medium pointer-events-none ${birthYear ? 'text-[#4a3627]' : 'text-[#a8907b]'}`}>
+                                        {birthYear && birthMonth && birthDay
+                                            ? `${birthYear}년 ${birthMonth.padStart(2, '0')}월 ${birthDay.padStart(2, '0')}일`
+                                            : "가볍게 터치하여 선택해주세요"}
+                                    </span>
                                     <input
                                         type="date"
                                         value={
@@ -320,8 +325,7 @@ export default function FortunePage() {
                                                 setBirthDay("");
                                             }
                                         }}
-                                        className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl px-4 py-3 sm:py-3.5 text-[#4a3627] text-center font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm"
-                                        style={{ minHeight: '52px' }}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                     />
                                 </div>
                             </div>
@@ -418,7 +422,7 @@ export default function FortunePage() {
                                                         <span className="absolute -top-[11px] bg-[#fffdfa] px-3 text-[10px] sm:text-xs font-bold text-[#b5835a] tracking-widest rounded-full border border-[#e6d5c3]/50 shadow-sm">
                                                             원문
                                                         </span>
-                                                        <p className="text-[#a8907b] text-xs sm:text-sm leading-relaxed break-keep whitespace-pre-wrap font-sans text-center">
+                                                        <p className="text-[#a8907b] text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans text-center break-all">
                                                             {fortuneResult.ohaasaJa}
                                                         </p>
                                                     </div>
