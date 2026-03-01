@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
-import { toPng } from "html-to-image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -78,6 +77,7 @@ function HomeContent() {
     if (!quoteCardRef.current) return;
 
     try {
+      const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(quoteCardRef.current, {
         backgroundColor: "#fdf8f0", // Match new warm background
         pixelRatio: 2, // Higher quality
