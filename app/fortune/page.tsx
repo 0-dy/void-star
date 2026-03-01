@@ -157,6 +157,24 @@ export default function FortunePage() {
         if (!name.trim()) return alert("이름을 입력해주세요!");
         if (!birthYear || !birthMonth || !birthDay) return alert("생년월일을 모두 입력해주세요!");
 
+        const yearNum = parseInt(birthYear);
+        const monthNum = parseInt(birthMonth);
+        const dayNum = parseInt(birthDay);
+
+        // Date validation logic
+        if (yearNum < 1900 || yearNum > new Date().getFullYear()) {
+            return alert("올바른 태어난 연도(4자리)를 입력해주세요.");
+        }
+        if (monthNum < 1 || monthNum > 12) {
+            return alert("올바른 태어난 월(1~12)을 입력해주세요.");
+        }
+
+        // Days in month logic
+        const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
+        if (dayNum < 1 || dayNum > daysInMonth) {
+            return alert(`${monthNum}월의 올바른 태어난 일(1~${daysInMonth})을 입력해주세요.`);
+        }
+
         // Save for next time
         localStorage.setItem('fortune_demographics', JSON.stringify({
             name, gender, calendarType, birthYear, birthMonth, birthDay, birthTime
@@ -286,7 +304,7 @@ export default function FortunePage() {
                                         <input
                                             type="number"
                                             value={birthYear}
-                                            onChange={(e) => setBirthYear(e.target.value)}
+                                            onChange={(e) => setBirthYear(e.target.value.slice(0, 4))} /* Limit to 4 digits visually */
                                             placeholder="YYYY"
                                             className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl pl-4 pr-8 py-3 sm:py-3.5 text-[#4a3627] text-center font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm"
                                         />
@@ -296,9 +314,8 @@ export default function FortunePage() {
                                         <input
                                             type="number"
                                             value={birthMonth}
-                                            onChange={(e) => setBirthMonth(e.target.value)}
+                                            onChange={(e) => setBirthMonth(e.target.value.slice(0, 2))}
                                             placeholder="MM"
-                                            min="1" max="12"
                                             className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl pl-4 pr-8 py-3 sm:py-3.5 text-[#4a3627] text-center font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm"
                                         />
                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b5a2b] text-sm font-bold">월</span>
@@ -307,9 +324,8 @@ export default function FortunePage() {
                                         <input
                                             type="number"
                                             value={birthDay}
-                                            onChange={(e) => setBirthDay(e.target.value)}
+                                            onChange={(e) => setBirthDay(e.target.value.slice(0, 2))}
                                             placeholder="DD"
-                                            min="1" max="31"
                                             className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl pl-4 pr-8 py-3 sm:py-3.5 text-[#4a3627] text-center font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm"
                                         />
                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b5a2b] text-sm font-bold">일</span>
