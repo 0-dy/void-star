@@ -1,423 +1,549 @@
 "use client";
 
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
-const GENRES = [
-  "랜덤",
-  "액션(Action)",
-  "스릴러(Thriller)",
-  "판타지(Fantasy)",
-  "범죄(Crime)",
-  "애니(Animation)",
-  "로맨스(Romance)",
-  "코미디(Comedy)"
+const ZODIAC_TIMES = [
+    { label: "모름", value: "unknown" },
+    { label: "子(자) 23:30 ~ 01:29", value: "ja" },
+    { label: "丑(축) 01:30 ~ 03:29", value: "chuk" },
+    { label: "寅(인) 03:30 ~ 05:29", value: "in" },
+    { label: "卯(묘) 05:30 ~ 07:29", value: "myo" },
+    { label: "辰(진) 07:30 ~ 09:29", value: "jin" },
+    { label: "巳(사) 09:30 ~ 11:29", value: "sa" },
+    { label: "午(오) 11:30 ~ 13:29", value: "o" },
+    { label: "未(미) 13:30 ~ 15:29", value: "mi" },
+    { label: "申(신) 15:30 ~ 17:29", value: "shin" },
+    { label: "酉(유) 17:30 ~ 19:29", value: "yu" },
+    { label: "戌(술) 19:30 ~ 21:29", value: "sul" },
+    { label: "亥(해) 21:30 ~ 23:29", value: "hae" }
 ];
 
-function HomeContent() {
-  const searchParams = useSearchParams();
-  const genreFromUrl = searchParams.get("genre");
+export default function FortunePage() {
+    const [name, setName] = useState("");
+    const [gender, setGender] = useState<"male" | "female">("male");
+    const [calendarType, setCalendarType] = useState<"solar" | "lunar">("solar");
+    const [birthYear, setBirthYear] = useState("");
+    const [birthMonth, setBirthMonth] = useState("");
+    const [birthDay, setBirthDay] = useState("");
+    const [birthTime, setBirthTime] = useState("unknown");
 
-  const [mood, setMood] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState(
-    genreFromUrl && GENRES.includes(genreFromUrl) ? genreFromUrl : GENRES[0]
-  );
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [quote, setQuote] = useState("");
-  const quoteCardRef = useRef<HTMLDivElement>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [fortuneResult, setFortuneResult] = useState<any>(null);
+    const resultCardRef = useRef<HTMLDivElement>(null);
 
-  // If URL changes, update genre
-  useEffect(() => {
-    if (genreFromUrl && GENRES.includes(genreFromUrl)) {
-      setSelectedGenre(genreFromUrl);
-    }
-  }, [genreFromUrl]);
+    const handleDownloadImage = async () => {
+        if (!resultCardRef.current) return;
 
-  // Handle body scroll locking when modal is open
-  useEffect(() => {
-    if (quote) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [quote]);
-
-  const handleGenerate = async () => {
-    const trimmedMood = mood.trim();
-    if (!trimmedMood) {
-      alert("오늘의 기분이나 상황을 입력해주세요!");
-      return;
-    }
-
-    // 단순 반복(ㅋㅋㅋ, ㅎㅎㅎ), 무의미한 자음/모음, 혹은 흔한 키보드 막치기(asdf, ㅁㄴㅇㄹ) 방지
-    const gibberishPattern = /^(?:[ㄱ-ㅎㅏ-ㅣ]+|asdf.*|qwer.*|ㅁㄴㅇㄹ.*|(.)\1{2,})$/i;
-    if (gibberishPattern.test(trimmedMood.replace(/\s/g, ''))) {
-      alert("조금 더 구체적인 기분이나 상황의 단어를 적어주세요!");
-      return;
-    }
-
-    setIsGenerating(true);
-    setQuote("");
-
-    try {
-      const response = await fetch("/api/generate-quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mood, genre: selectedGenre === "랜덤" ? "랜덤" : selectedGenre }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.quote) {
-        setQuote(data.quote);
-      } else {
-        alert("명언 생성에 실패했습니다. 다시 시도해주세요.");
-      }
-    } catch (error) {
-      console.error("Error connecting to API:", error);
-      alert("명언 생성 중 오류가 발생했습니다.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleDownloadImage = async () => {
-    if (!quoteCardRef.current) return;
-
-    try {
-      const { toPng } = await import("html-to-image");
-      const dataUrl = await toPng(quoteCardRef.current, {
-        backgroundColor: "#fdf8f0", // Match new warm background
-        pixelRatio: 2, // Higher quality
-      });
-
-      const link = document.createElement("a");
-      link.download = `my-mood-quote-${Date.now()}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (error) {
-      console.error("Error generating image:", error);
-      alert("이미지 저장에 실패했습니다.");
-    }
-  };
-
-  const handleShareImage = async () => {
-    if (!quoteCardRef.current) return;
-
-    try {
-      const { toBlob } = await import("html-to-image");
-      const blob = await toBlob(quoteCardRef.current, {
-        backgroundColor: "#fdf8f0",
-        pixelRatio: 2,
-      });
-
-      if (!blob) throw new Error("Failed to generate image blob");
-
-      // Check if user is in an In-App Browser (Kakao, Instagram, Line, etc.)
-      const isKakao = /KAKAOTALK/i.test(navigator.userAgent);
-      const isOtherIab = /Instagram|FBAV|Line/i.test(navigator.userAgent);
-      const isIab = isKakao || isOtherIab;
-
-      // Check if user is on a mobile device
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-      // 1. Mobile & Normal Browser: Try full image share
-      if (isMobile && !isIab && navigator.canShare) {
-        const file = new File([blob], `my-mood-quote-${Date.now()}.png`, { type: "image/png" });
-        if (navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: "명대사 포춘쿠키",
-              text: "오늘 내 기분에 딱 맞는 영화 명대사!",
-            });
-            return;
-          } catch (shareError: any) {
-            if (shareError.name !== 'AbortError') {
-              console.error("Native file share failed", shareError);
-            } else {
-              return;
-            }
-          }
-        }
-      }
-
-      // 2. KakaoTalk In-App Browser: Try sharing TEXT/URL only (Kakao blocks file sharing)
-      if (isKakao && navigator.share) {
         try {
-          await navigator.share({
-            title: "명대사 포춘쿠키",
-            text: `"${quote.split('\n')[0]}" - 오늘 내 기분에 딱 맞는 영화 명대사!`,
-            url: window.location.href, // This triggers Kakao's native link share
-          });
-          return;
-        } catch (shareError: any) {
-          if (shareError.name !== 'AbortError') {
-            console.error("Kakao native text share failed", shareError);
-          } else {
-            return;
-          }
-        }
-      }
+            const { toPng } = await import("html-to-image");
+            const dataUrl = await toPng(resultCardRef.current, {
+                backgroundColor: "#fffefc", // The color of the card
+                pixelRatio: 2,
+            });
 
-      // Fallback: Clipboard copy for PC, iPads, and mobile in-app browsers
-      if (navigator.clipboard) {
-        if (window.ClipboardItem) {
-          try {
-            const item = new ClipboardItem({ "image/png": blob });
-            await navigator.clipboard.write([item]);
-            alert("명언 이미지가 클립보드에 복사되었습니다!\n원하는 곳(카톡, 게시판 등)에 붙여넣기 하여 공유해보세요. 📸");
-          } catch (clipboardError) {
-            console.error("Clipboard image copy failed, trying text", clipboardError);
-            try {
-              const textToCopy = `[명대사 포춘쿠키]\n"${quote.split('\n')[0]}"\n${quote.split('\n')[1] || ''}\n👉 https://xn--hz2b60w.site`;
-              await navigator.clipboard.writeText(textToCopy);
-              alert("이미지 복사에 실패하여 텍스트가 대신 복사되었습니다! 📝");
-            } catch (e) {
-              alert("공유하기가 지원되지 않는 환경입니다. 옆의 '저장하기' 버튼을 이용해 주세요. 😢");
+            const link = document.createElement("a");
+            link.download = `my-fortune-${Date.now()}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error("Error generating image:", error);
+            alert("이미지 저장에 실패했습니다.");
+        }
+    };
+
+    const handleShareImage = async () => {
+        if (!resultCardRef.current) return;
+
+        try {
+            const { toBlob } = await import("html-to-image");
+            const blob = await toBlob(resultCardRef.current, {
+                backgroundColor: "#fffefc",
+                pixelRatio: 2,
+            });
+
+            if (!blob) throw new Error("Failed to generate image blob");
+
+            const isKakao = /KAKAOTALK/i.test(navigator.userAgent);
+            const isOtherIab = /Instagram|FBAV|Line/i.test(navigator.userAgent);
+            const isIab = isKakao || isOtherIab;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            const shareText = `[나의 운세와 명대사]\n"${fortuneResult?.quoteText}"\n${fortuneResult?.quoteMovie}\n👉 https://xn--hz2b60w.site/fortune`;
+
+            if (isMobile && !isIab && navigator.canShare) {
+                const file = new File([blob], `my-fortune-${Date.now()}.png`, { type: "image/png" });
+                if (navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: "오늘 나의 운세와 명대사",
+                            text: shareText,
+                        });
+                        return;
+                    } catch (shareError: any) {
+                        if (shareError.name !== 'AbortError') console.error("Native file share failed", shareError);
+                        else return;
+                    }
+                }
             }
-          }
-        } else {
-          // Fallback: Text copy if ClipboardItem isn't supported (e.g. Firefox PC)
-          try {
-            const textToCopy = `[명대사 포춘쿠키]\n"${quote.split('\n')[0]}"\n${quote.split('\n')[1] || ''}\n👉 https://xn--hz2b60w.site`;
-            await navigator.clipboard.writeText(textToCopy);
-            alert("이미지 복사가 지원되지 않아 명언 텍스트가 대신 복사되었습니다! 📝");
-          } catch (e) {
-            alert("이 환경에서는 공유하기가 지원되지 않습니다. 옆의 '저장하기' 버튼을 이용해 주세요. 😢");
-          }
+
+            if (isKakao && navigator.share) {
+                try {
+                    await navigator.share({
+                        title: "오늘 나의 운세와 명대사",
+                        text: shareText,
+                        url: window.location.href,
+                    });
+                    return;
+                } catch (shareError: any) {
+                    if (shareError.name !== 'AbortError') console.error("Kakao native text share failed", shareError);
+                    else return;
+                }
+            }
+
+            if (navigator.clipboard) {
+                if (window.ClipboardItem) {
+                    try {
+                        const item = new ClipboardItem({ "image/png": blob });
+                        await navigator.clipboard.write([item]);
+                        alert("운세 결과 이미지가 클립보드에 복사되었습니다!\n원하는 곳에 붙여넣기 하여 공유해보세요. 📸");
+                    } catch (clipboardError) {
+                        console.error("Clipboard image copy failed, trying text", clipboardError);
+                        try {
+                            await navigator.clipboard.writeText(shareText);
+                            alert("이미지 복사에 실패하여 텍스트가 대신 복사되었습니다! 📝");
+                        } catch (e) {
+                            alert("이 환경에서는 공유하기가 지원되지 않습니다. 화면을 캡처해 주세요. 😢");
+                        }
+                    }
+                } else {
+                    try {
+                        await navigator.clipboard.writeText(shareText);
+                        alert("이미지 복사가 지원되지 않아 텍스트가 대신 복사되었습니다! 📝");
+                    } catch (e) {
+                        alert("이 환경에서는 공유하기가 지원되지 않습니다. 화면을 캡처해 주세요. 😢");
+                    }
+                }
+            } else {
+                alert("이 환경에서는 공유하기가 지원되지 않습니다. 화면을 캡처해 주세요. 😢");
+            }
+        } catch (error) {
+            console.error("Error generating image for share:", error);
+            alert("이미지 처리 중 오류가 발생했습니다.");
         }
-      } else {
-        alert("이 환경에서는 공유하기가 지원되지 않습니다. 옆의 '저장하기' 버튼을 이용해 주세요. 😢");
-      }
-    } catch (error) {
-      console.error("Error generating image for share:", error);
-      alert("이미지 처리 중 오류가 발생했습니다.");
-    }
-  };
+    };
 
-  return (
-    <main className="min-h-screen w-full relative overflow-hidden flex flex-col items-center justify-center p-4 bg-[#fdf8f0]">
-      {/* Background Ornaments */}
-      <div className="bg-blob blob-1"></div>
-      <div className="bg-blob blob-2"></div>
+    useEffect(() => {
+        // Load saved demographics
+        const saved = localStorage.getItem('fortune_demographics');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.name) setName(parsed.name);
+                if (parsed.gender) setGender(parsed.gender);
+                if (parsed.calendarType) setCalendarType(parsed.calendarType);
+                if (parsed.birthYear) setBirthYear(parsed.birthYear);
+                if (parsed.birthMonth) setBirthMonth(parsed.birthMonth);
+                if (parsed.birthDay) setBirthDay(parsed.birthDay);
+                if (parsed.birthTime) setBirthTime(parsed.birthTime);
+            } catch (e) {
+                console.error("Failed to load saved demographics");
+            }
+        }
+    }, []);
 
-      {/* Main Glass Container */}
-      <div className="glass-panel w-full max-w-2xl rounded-2xl sm:rounded-3xl p-6 sm:p-12 flex flex-col items-center z-10 animate-fade-in-up border border-[#d4a373]/30">
-        {/* Hero Section */}
-        <div className="text-center mb-8 sm:mb-10">
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#8b5a2b] to-[#c17f45] animate-float drop-shadow-sm">
-            명대사 포춘쿠키
-          </h1>
-          <p className="text-[#6b4e31] text-sm sm:text-lg break-keep font-medium">
-            지금 당신의 기분에 따른 영화 명대사를 보여드려요.
-          </p>
-        </div>
+    const handleGenerate = async () => {
+        if (!name.trim()) return alert("이름을 입력해주세요!");
+        if (!birthYear || !birthMonth || !birthDay) return alert("생년월일을 모두 입력해주세요!");
 
-        {/* Input Component */}
-        <div className="w-full space-y-6">
-          <div className="space-y-3">
-            <label htmlFor="mood" className="text-sm font-bold text-[#5c4033] ml-1">
-              오늘 기분은 어떠세요?
-            </label>
-            <textarea
-              id="mood"
-              value={mood}
-              onChange={(e) => setMood(e.target.value)}
-              placeholder="예: 큰 프로젝트를 막 끝내서 몸은 피곤하지만 마음은 아주 뿌듯해..."
-              className="w-full h-24 sm:h-32 bg-white/70 border border-[#d4a373]/50 rounded-2xl p-3 sm:p-4 text-sm sm:text-base text-[#4a3627] placeholder-[#a68a6d] focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all resize-none shadow-sm"
-            />
-          </div>
+        const yearNum = parseInt(birthYear);
+        const monthNum = parseInt(birthMonth);
+        const dayNum = parseInt(birthDay);
 
-          <div className="space-y-3">
-            <label className="text-sm font-bold text-[#5c4033] ml-1">
-              원하는 장르 / 분위기 선택
-            </label>
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              {GENRES.map((genre) => (
-                <div key={genre} className="flex items-center gap-2 sm:gap-3">
-                  <button
-                    onClick={() => setSelectedGenre(genre)}
-                    className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 ${selectedGenre === genre
-                      ? "bg-gradient-to-r from-[#b57b42] to-[#d4a373] text-white shadow-md shadow-[#d4a373]/40 border border-[#8b5a2b]/20"
-                      : "bg-white/60 text-[#8b5a2b] hover:bg-[#faedcd] border border-[#d4a373]/30 shadow-sm"
-                      }`}
-                  >
-                    {genre}
-                  </button>
-                  {genre === "랜덤" && (
-                    <span className="text-[#d4a373] font-bold text-base sm:text-lg select-none">/</span>
-                  )}
+        // Date validation logic
+        if (yearNum < 1900 || yearNum > new Date().getFullYear()) {
+            return alert("올바른 태어난 연도(4자리)를 입력해주세요.");
+        }
+        if (monthNum < 1 || monthNum > 12) {
+            return alert("올바른 태어난 월(1~12)을 입력해주세요.");
+        }
+
+        // Days in month logic
+        const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
+        if (dayNum < 1 || dayNum > daysInMonth) {
+            return alert(`${monthNum}월의 올바른 태어난 일(1~${daysInMonth})을 입력해주세요.`);
+        }
+
+        // Save for next time
+        localStorage.setItem('fortune_demographics', JSON.stringify({
+            name, gender, calendarType, birthYear, birthMonth, birthDay, birthTime
+        }));
+
+        setIsGenerating(true);
+        setFortuneResult(null);
+
+        try {
+            const response = await fetch('/api/generate-fortune', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name, gender, calendarType, birthYear, birthMonth, birthDay, birthTime
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setFortuneResult(data);
+            } else {
+                alert("운세 생성에 실패했습니다. 다시 시도해주세요.");
+            }
+        } catch (error) {
+            console.error("Error fetching fortune:", error);
+            alert("운세 서버와 연결할 수 없습니다.");
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    return (
+        <main className="min-h-screen w-full relative overflow-y-auto pb-20 p-4 bg-[#fdf8f0]">
+            {/* Background Ornaments */}
+            <div className="bg-blob blob-1"></div>
+            <div className="bg-blob blob-2"></div>
+
+            <div className="max-w-2xl mx-auto pt-6 sm:pt-10 flex flex-col items-center">
+                {/* Header */}
+                <div className="w-full flex items-center justify-center mb-8 z-10 px-2 sm:px-0 mt-4">
+                    <div className="bg-[#fffefc] px-5 py-2 rounded-full border border-[#e6d5c3] shadow-sm flex items-center gap-2">
+                        <span className="shrink-0 text-xl">🔮</span>
+                        <span className="text-base font-black text-[#8b5a2b] tracking-widest">
+                            오늘의 운세
+                        </span>
+                    </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <button
-            onClick={handleGenerate}
-            disabled={!mood.trim() || isGenerating}
-            className="w-full py-3 sm:py-4 mt-4 sm:mt-6 bg-[#4a3627] text-[#fdf8f0] rounded-2xl font-black text-base sm:text-lg transition-all duration-300 hover:bg-[#342419] hover:shadow-xl hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:bg-[#8b7355] flex items-center justify-center gap-2 border-b-4 border-[#2b1e15] active:border-b-0 active:translate-y-1"
-          >
-            {isGenerating ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                명대사를 찾는 중...
-              </>
-            ) : (
-              "명대사 보기"
-            )}
-          </button>
-        </div>
-
-        {/* Result Component (Modal Popup) */}
-        {quote && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in-up">
-            {/* Dark Overlay */}
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-              onClick={() => setQuote("")}
-            ></div>
-
-            {/* Modal Content */}
-            <div className="relative w-full max-w-2xl bg-[#fdf8f0] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-
-              {/* Close Button */}
-              <button
-                onClick={() => setQuote("")}
-                className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center bg-white/50 text-[#8b5a2b] hover:bg-[#8b5a2b] hover:text-white rounded-full transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-
-              {/* Quote Card */}
-              <div
-                ref={quoteCardRef}
-                className="relative overflow-hidden bg-[#fffefc] p-8 sm:p-12"
-              >
-                {/* Subtle paper texture overlay */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 20 20\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'%23000000\\' fill-opacity=\\'1\\' fill-rule=\\'evenodd\\'%3E%3Ccircle cx=\\'3\\' cy=\\'3\\' r=\\'3\\'/%3E%3Ccircle cx=\\'13\\' cy=\\'13\\' r=\\'3\\'/%3E%3C/g%3E%3C/svg%3E')" }}></div>
-
-                <div className="relative z-10 break-keep text-center">
-                  <p className="text-xl sm:text-3xl font-serif text-[#4a3627] leading-relaxed mb-6 sm:mb-8 relative z-10 px-2 sm:px-4 mt-2 font-bold tracking-tight">
-                    {quote.split('\n')[0]}
-                  </p>
-                  <p className="text-right text-[#8b5a2b] font-medium tracking-widest text-xs sm:text-sm uppercase mt-2">
-                    {quote.split('\n').length > 1 ? quote.split('\n')[1] : ""}
-                  </p>
+                {/* Title */}
+                <div className="text-center mb-8 z-10">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3 text-[#4a3627]">
+                        오늘의 운세
+                    </h1>
+                    <p className="text-[#6b4e31] font-medium text-sm sm:text-base">
+                        사주 정보를 입력하고 나만의 맞춤 위로를 받아보세요.
+                    </p>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="bg-[#faedcd] border-t border-[#e6d5c3] p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={handleDownloadImage}
-                    className="flex-1 sm:flex-none text-sm font-bold bg-white text-[#8b5a2b] px-4 py-3 rounded-xl hover:bg-[#fffefc] transition-all border border-[#d4a373]/30 shadow-sm hover:shadow-md"
-                  >
-                    저장하기
-                  </button>
-                  <button
-                    onClick={handleShareImage}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-1 text-sm font-bold bg-[#8b5a2b] text-white px-4 py-3 rounded-xl shadow-md shadow-[#8b5a2b]/30 hover:shadow-[#8b5a2b]/50 transition-all hover:-translate-y-0.5"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
-                    </svg>
-                    공유하기
-                  </button>
+                {/* Content Section (Swap based on result) */}
+                {!fortuneResult ? (
+                    <div className="glass-panel w-full rounded-3xl p-6 sm:p-10 mb-8 z-10 border border-[#d4a373]/30 shadow-xl shadow-[#d4a373]/10 animate-fade-in-up">
+                        <div className="space-y-6">
+
+                            {/* Name */}
+                            <div>
+                                <label className="block text-sm font-bold text-[#5c4033] mb-2 ml-1">이름 (또는 닉네임)</label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="예: 지호"
+                                    className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl px-4 py-3 sm:py-3.5 text-[#4a3627] placeholder-[#a68a6d] focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm"
+                                />
+                            </div>
+
+                            {/* Demographics Row */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-[#5c4033] mb-2 ml-1">성별</label>
+                                    <div className="flex bg-white/50 p-1 rounded-2xl border border-[#d4a373]/30">
+                                        <button
+                                            onClick={() => setGender('male')}
+                                            className={`flex-1 py-2 sm:py-2.5 rounded-xl text-sm font-bold transition-all ${gender === 'male' ? 'bg-[#8b5a2b] text-white shadow-md' : 'text-[#8b5a2b] hover:bg-white/50'}`}
+                                        >
+                                            남성
+                                        </button>
+                                        <button
+                                            onClick={() => setGender('female')}
+                                            className={`flex-1 py-2 sm:py-2.5 rounded-xl text-sm font-bold transition-all ${gender === 'female' ? 'bg-[#8b5a2b] text-white shadow-md' : 'text-[#8b5a2b] hover:bg-white/50'}`}
+                                        >
+                                            여성
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-[#5c4033] mb-2 ml-1">양력 / 음력</label>
+                                    <div className="flex bg-white/50 p-1 rounded-2xl border border-[#d4a373]/30">
+                                        <button
+                                            onClick={() => setCalendarType('solar')}
+                                            className={`flex-1 py-2 sm:py-2.5 rounded-xl text-sm font-bold transition-all ${calendarType === 'solar' ? 'bg-[#8b5a2b] text-white shadow-md' : 'text-[#8b5a2b] hover:bg-white/50'}`}
+                                        >
+                                            양력
+                                        </button>
+                                        <button
+                                            onClick={() => setCalendarType('lunar')}
+                                            className={`flex-1 py-2 sm:py-2.5 rounded-xl text-sm font-bold transition-all ${calendarType === 'lunar' ? 'bg-[#8b5a2b] text-white shadow-md' : 'text-[#8b5a2b] hover:bg-white/50'}`}
+                                        >
+                                            음력
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Date of Birth */}
+                            <div>
+                                <label className="block text-sm font-bold text-[#5c4033] mb-2 ml-1">생년월일</label>
+                                <div className="relative w-full border border-[#d4a373]/50 rounded-2xl bg-white/70 shadow-sm overflow-hidden flex items-center justify-center transition-all focus-within:ring-2 focus-within:ring-[#d4a373] sm:border-none sm:bg-transparent sm:shadow-none" style={{ minHeight: '52px' }}>
+                                    <span className={`font-medium pointer-events-none sm:hidden ${birthYear ? 'text-[#4a3627]' : 'text-[#a8907b]'}`}>
+                                        {birthYear && birthMonth && birthDay
+                                            ? `${birthYear}년 ${birthMonth.padStart(2, '0')}월 ${birthDay.padStart(2, '0')}일`
+                                            : "터치하여 선택해주세요"}
+                                    </span>
+                                    <input
+                                        type="date"
+                                        value={
+                                            birthYear && birthMonth && birthDay
+                                                ? `${birthYear.padStart(4, '0')}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`
+                                                : ""
+                                        }
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val) {
+                                                const [y, m, d] = val.split('-');
+                                                setBirthYear(y);
+                                                setBirthMonth(m);
+                                                setBirthDay(d);
+                                            } else {
+                                                setBirthYear("");
+                                                setBirthMonth("");
+                                                setBirthDay("");
+                                            }
+                                        }}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer sm:opacity-100 sm:relative sm:inset-auto sm:bg-white/70 sm:border sm:border-[#d4a373]/50 sm:rounded-2xl sm:px-4 sm:py-3.5 sm:text-[#4a3627] sm:text-center sm:font-medium sm:focus:outline-none sm:focus:ring-2 sm:focus:ring-[#d4a373] sm:shadow-sm"
+                                        style={{ minHeight: '52px' }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Time of Birth */}
+                            <div>
+                                <label className="block text-sm font-bold text-[#5c4033] mb-2 ml-1">태어난 시간 (선택사항)</label>
+                                <div className="relative">
+                                    <select
+                                        value={birthTime}
+                                        onChange={(e) => setBirthTime(e.target.value)}
+                                        className="w-full bg-white/70 border border-[#d4a373]/50 rounded-2xl pl-4 pr-10 py-3 sm:py-3.5 text-[#4a3627] appearance-none focus:outline-none focus:ring-2 focus:ring-[#d4a373] transition-all shadow-sm font-medium"
+                                    >
+                                        {ZODIAC_TIMES.map(t => (
+                                            <option key={t.value} value={t.value}>{t.label}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#8b5a2b]">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <button
+                            onClick={handleGenerate}
+                            disabled={isGenerating || !name.trim() || !birthYear || !birthMonth || !birthDay}
+                            className="w-full py-4 mt-8 bg-gradient-to-r from-[#8b5a2b] to-[#b07d4f] text-[#fdf8f0] rounded-2xl font-black text-lg transition-all duration-300 hover:shadow-lg hover:shadow-[#8b5a2b]/30 hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
+                        >
+                            {isGenerating ? (
+                                <>
+                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    별자리 분석 중...
+                                </>
+                            ) : (
+                                "내 사주로 운세 뽑기 🥠"
+                            )}
+                        </button>
+                    </div>
+                ) : (
+                    <div className="w-full animate-fade-in-up">
+                        <div ref={resultCardRef} className="relative overflow-hidden rounded-3xl bg-[#fffefc] border-2 border-[#e6d5c3] shadow-xl shadow-[#d4a373]/10">
+                            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 20 20\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'%23000000\\' fill-opacity=\\'1\\' fill-rule=\\'evenodd\\'%3E%3Ccircle cx=\\'3\\' cy=\\'3\\' r=\\'3\\'/%3E%3Ccircle cx=\\'13\\' cy=\\'13\\' r=\\'3\\'/%3E%3C/g%3E%3C/svg%3E')" }}></div>
+
+                            <div className="px-6 py-6 sm:px-12 sm:py-10 relative z-10">
+                                <div className="text-center mb-5">
+                                    <span className="inline-block bg-[#fdf8f0] text-[#8b5a2b] font-bold px-4 py-1.5 rounded-full text-sm border border-[#e6d5c3] mb-3 shadow-sm">
+                                        ✨ {name} 님의 오늘
+                                    </span>
+                                    <h3 className="text-2xl font-black text-[#4a3627] mb-3 leading-tight">
+                                        {fortuneResult.title.includes('(') ? (
+                                            <>
+                                                {fortuneResult.title.split('(')[0].trim()}
+                                                <span className="block text-lg font-bold text-[#8b5a2b] mt-2">
+                                                    ({fortuneResult.title.split('(')[1]}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            fortuneResult.title
+                                        )}
+                                    </h3>
+                                    <p className="text-[#6b4e31] leading-relaxed break-keep font-medium whitespace-pre-wrap">
+                                        {fortuneResult.fortune}
+                                    </p>
+
+                                    {fortuneResult.ohaasa && (
+                                        <div className="mt-7 mb-2">
+                                            <div className="flex items-center justify-center gap-3 mb-4">
+                                                <div className="h-px w-10 sm:w-16 bg-gradient-to-r from-transparent to-[#d4a373]/60"></div>
+                                                <span className="text-xs sm:text-sm font-bold text-[#b5835a] tracking-wider flex items-center gap-1.5">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                    </svg>
+                                                    [오하아사 톡] {fortuneResult.zodiac}의 오늘
+                                                </span>
+                                                <div className="h-px w-10 sm:w-16 bg-gradient-to-l from-transparent to-[#d4a373]/60"></div>
+                                            </div>
+                                            <div className="bg-[#fffdfa] border border-[#e6d5c3]/70 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden flex flex-col">
+                                                <div className="absolute -top-4 -right-4 w-16 h-16 bg-[#fdf8f0] rounded-full opacity-60"></div>
+                                                <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-[#fdf8f0] rounded-full opacity-60"></div>
+
+                                                <div className="w-full relative z-10 flex flex-col items-center mt-2 mb-2">
+                                                    <span className="bg-[#fdf8f0] px-3 py-0.5 text-[10px] sm:text-xs font-bold text-[#b5835a] tracking-widest rounded-full border border-[#e6d5c3]/50 shadow-sm mb-4">
+                                                        해석
+                                                    </span>
+                                                    <p className="text-[#7a5c40] text-sm sm:text-base leading-loose break-keep whitespace-pre-wrap font-medium text-center">
+                                                        {fortuneResult.ohaasa}
+                                                    </p>
+                                                </div>
+
+                                                {fortuneResult.ohaasaJa && (
+                                                    <div className="w-full mt-6 pt-5 border-t border-[#e6d5c3]/50 relative z-10 flex flex-col items-center">
+                                                        <span className="absolute -top-[11px] bg-[#fffdfa] px-3 text-[10px] sm:text-xs font-bold text-[#b5835a] tracking-widest rounded-full border border-[#e6d5c3]/50 shadow-sm">
+                                                            원문
+                                                        </span>
+                                                        <p className="text-[#a8907b] text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans text-center break-all">
+                                                            {fortuneResult.ohaasaJa}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                <div className="relative z-10 w-full flex justify-end mt-4">
+                                                    <span className="text-[#c9b5a1] text-[10px] sm:text-xs tracking-tighter">
+                                                        출처: TV Asahi Ohaasa
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="w-full h-px bg-gradient-to-r from-transparent via-[#d4a373]/50 to-transparent my-6"></div>
+
+                                <div className="text-center break-keep">
+                                    <p className="text-xl sm:text-2xl font-serif text-[#4a3627] leading-relaxed mb-4 font-bold tracking-tight">
+                                        {fortuneResult.quoteText}
+                                    </p>
+                                    <p className="text-[#8b5a2b] font-medium tracking-widest text-xs sm:text-sm uppercase">
+                                        - {fortuneResult.quoteMovie}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-[#faedcd] border-t border-[#e6d5c3] p-4 sm:p-6 flex flex-col sm:flex-row justify-center items-center gap-3 relative z-10" data-html2canvas-ignore="true">
+                                <button
+                                    onClick={() => setFortuneResult(null)}
+                                    className="w-full sm:w-auto font-bold bg-white text-[#8b5a2b] px-6 py-3 rounded-xl border border-[#d4a373]/30 shadow-sm hover:shadow-md transition-all whitespace-nowrap"
+                                >
+                                    다시 뽑기
+                                </button>
+                                <button
+                                    onClick={handleDownloadImage}
+                                    className="w-full sm:w-auto font-bold flex items-center justify-center gap-2 bg-[#d4a373] text-white px-6 py-3 rounded-xl shadow-md hover:shadow-lg hover:bg-[#c99a6c] transition-all"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                    저장하기
+                                </button>
+                                <button
+                                    onClick={handleShareImage}
+                                    className="w-full sm:w-auto font-bold flex items-center justify-center gap-2 bg-[#8b5a2b] text-white px-6 py-3 rounded-xl shadow-md hover:shadow-lg hover:bg-[#7a4f26] transition-all"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                                    </svg>
+                                    공유하기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Mini Games Section (Moved from old main page) */}
+                <div className="w-full mt-8 space-y-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+
+                    {/* Quotes Generator Banner */}
+                    <Link
+                        href="/generator"
+                        className="group relative overflow-hidden bg-gradient-to-r from-[#1e3a8a] to-[#312e81] rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-[#1e3a8a]/20 transition-transform hover:-translate-y-1 hover:shadow-xl block border border-[#4f46e5]/30"
+                    >
+                        {/* Decorative graphic hints */}
+                        <div className="absolute right-[-5%] top-[-20%] opacity-10 group-hover:rotate-12 transition-transform duration-700">
+                            <span className="text-[120px] font-black pointer-events-none">✨</span>
+                        </div>
+
+                        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm ring-1 ring-white/20">
+                                <span className="text-3xl">🥠</span>
+                            </div>
+                            <div className="text-left">
+                                <h3 className="text-white font-black text-xl mb-1 flex items-center gap-2">
+                                    명대사 포춘쿠키
+                                </h3>
+                                <p className="text-[#e2e8f0] text-sm font-medium">지금 내 기분 상황에 딱 맞는 명대사를 타로처럼 뽑아보세요.</p>
+                            </div>
+                        </div>
+
+                        <div className="relative z-10 hidden sm:flex bg-white/10 hover:bg-white/20 transition-colors p-3 rounded-full backdrop-blur-sm shadow-inner group-hover:scale-110 duration-300 ring-1 ring-white/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#fbbf24]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </Link>
+
+                    {/* Quiz Banner */}
+                    <Link
+                        href="/quiz"
+                        className="group relative overflow-hidden bg-gradient-to-r from-[#8b5a2b] to-[#b07d4f] rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-[#8b5a2b]/20 transition-transform hover:-translate-y-1 hover:shadow-xl block"
+                    >
+                        {/* Decorative graphic hints */}
+                        <div className="absolute left-[-10%] bottom-[-50%] opacity-10 group-hover:scale-110 transition-transform duration-700">
+                            <span className="text-[150px] font-black pointer-events-none">?</span>
+                        </div>
+
+                        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+                                <span className="text-3xl">🎮</span>
+                            </div>
+                            <div className="text-left">
+                                <h3 className="text-white font-black text-xl mb-1 flex items-center gap-2">
+                                    미니게임 : 영화 명대사 O/X 퀴즈
+                                </h3>
+                                <p className="text-[#fdf8f0]/90 text-sm font-medium">당신의 영화 지식을 테스트해보세요! (10연승 도전)</p>
+                            </div>
+                        </div>
+
+                        <div className="relative z-10 hidden sm:flex bg-white/20 hover:bg-white/30 transition-colors p-3 rounded-full backdrop-blur-sm shadow-inner group-hover:scale-110 duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </Link>
+
                 </div>
-                <a
-                  href="https://buymeacoffee.com/lemon1106"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-bold bg-[#ee9b00] text-white px-5 py-3 rounded-xl shadow-md shadow-[#ee9b00]/30 hover:shadow-[#ee9b00]/50 transition-all hover:-translate-y-0.5"
-                >
-                  <span>☕</span> 커피 한 잔 후원
-                </a>
-              </div>
+
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Mini Games Section */}
-      <div className="w-full max-w-2xl mt-8 space-y-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-
-        {/* Quiz Banner */}
-        <Link
-          href="/quiz"
-          className="group relative overflow-hidden bg-gradient-to-r from-[#8b5a2b] to-[#b07d4f] rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-[#8b5a2b]/20 transition-transform hover:-translate-y-1 hover:shadow-xl block"
-        >
-          {/* Decorative graphic hints */}
-          <div className="absolute left-[-10%] bottom-[-50%] opacity-10 group-hover:scale-110 transition-transform duration-700">
-            <span className="text-[150px] font-black pointer-events-none">?</span>
-          </div>
-
-          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
-              <span className="text-3xl">🎮</span>
-            </div>
-            <div className="text-left">
-              <h3 className="text-white font-black text-xl mb-1 flex items-center gap-2">
-                미니게임 : 영화 명대사 O/X 퀴즈
-              </h3>
-              <p className="text-[#fdf8f0]/90 text-sm font-medium">당신의 영화 지식을 테스트해보세요! (10연승 도전)</p>
-            </div>
-          </div>
-
-          <div className="relative z-10 hidden sm:flex bg-white/20 hover:bg-white/30 transition-colors p-3 rounded-full backdrop-blur-sm shadow-inner group-hover:scale-110 duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </Link>
-
-        {/* Fortune Banner */}
-        <Link
-          href="/fortune"
-          className="group relative overflow-hidden bg-gradient-to-r from-[#1e3a8a] to-[#312e81] rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-[#1e3a8a]/20 transition-transform hover:-translate-y-1 hover:shadow-xl block border border-[#4f46e5]/30"
-        >
-          {/* Decorative graphic hints */}
-          <div className="absolute right-[-5%] top-[-20%] opacity-10 group-hover:rotate-12 transition-transform duration-700">
-            <span className="text-[120px] font-black pointer-events-none">✨</span>
-          </div>
-
-          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm ring-1 ring-white/20">
-              <span className="text-3xl">🥠</span>
-            </div>
-            <div className="text-left">
-              <h3 className="text-white font-black text-xl mb-1 flex items-center gap-2">
-                오늘 나의 운세와 명대사 <span className="bg-[#fbbf24] text-[#78350f] text-[10px] px-2 py-0.5 rounded-full font-black animate-pulse shadow-sm">NEW</span>
-              </h3>
-              <p className="text-[#e2e8f0] text-sm font-medium">사주 정보를 바탕으로 나만의 맞춤 위로를 받아보세요.</p>
-            </div>
-          </div>
-
-          <div className="relative z-10 hidden sm:flex bg-white/10 hover:bg-white/20 transition-colors p-3 rounded-full backdrop-blur-sm shadow-inner group-hover:scale-110 duration-300 ring-1 ring-white/20">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#fbbf24]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </Link>
-      </div>
-    </main>
-  );
-}
-
-export default function Home() {
-  return (
-    <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-[#fdf8f0] text-[#8b5a2b] font-bold">로딩 중...</div>}>
-      <HomeContent />
-    </Suspense>
-  );
+        </main >
+    );
 }
