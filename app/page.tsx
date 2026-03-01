@@ -119,9 +119,11 @@ function HomeContent() {
 
       // Check if user is in an In-App Browser (Kakao, Instagram, Line, etc.)
       const isIab = /KAKAOTALK|Instagram|FBAV|Line/i.test(navigator.userAgent);
+      // Check if user is on a mobile device
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-      if (!isIab && navigator.canShare) {
-        // Try native file sharing for normal browsers (Chrome, Safari)
+      if (isMobile && !isIab && navigator.canShare) {
+        // Try native file sharing for normal mobile browsers (Chrome, Safari, Samsung Internet)
         const file = new File([blob], `my-mood-quote-${Date.now()}.png`, { type: "image/png" });
         if (navigator.canShare({ files: [file] })) {
           try {
@@ -141,16 +143,32 @@ function HomeContent() {
         }
       }
 
-      // Fallback: Clipboard copy for Instagram/Kakao in-app browsers
-      if (navigator.clipboard && window.ClipboardItem) {
-        try {
-          // Mobile Safari requires Promise resolution inside the write call
-          const item = new ClipboardItem({ "image/png": blob });
-          await navigator.clipboard.write([item]);
-          alert("이미지가 클립보드에 복사되었습니다! 인스타그램이나 카톡 붙여넣기로 공유해보세요. 📸");
-        } catch (clipboardError) {
-          console.error("Clipboard copy failed", clipboardError);
-          alert("공유 및 복사에 실패했습니다. 옆의 '저장하기' 버튼을 이용해 주세요. 😢");
+      // Fallback: Clipboard copy for PC, iPads, and mobile in-app browsers
+      if (navigator.clipboard) {
+        if (window.ClipboardItem) {
+          try {
+            const item = new ClipboardItem({ "image/png": blob });
+            await navigator.clipboard.write([item]);
+            alert("명언 이미지가 클립보드에 복사되었습니다!\n원하는 곳(카톡, 게시판 등)에 붙여넣기 하여 공유해보세요. 📸");
+          } catch (clipboardError) {
+            console.error("Clipboard image copy failed, trying text", clipboardError);
+            try {
+              const textToCopy = `[명대사 포춘쿠키]\n"${quote.split('\n')[0]}"\n${quote.split('\n')[1] || ''}\n👉 https://xn--hz2b60w.site`;
+              await navigator.clipboard.writeText(textToCopy);
+              alert("이미지 복사에 실패하여 텍스트가 대신 복사되었습니다! 📝");
+            } catch (e) {
+              alert("공유하기가 지원되지 않는 환경입니다. 옆의 '저장하기' 버튼을 이용해 주세요. 😢");
+            }
+          }
+        } else {
+          // Fallback: Text copy if ClipboardItem isn't supported (e.g. Firefox PC)
+          try {
+            const textToCopy = `[명대사 포춘쿠키]\n"${quote.split('\n')[0]}"\n${quote.split('\n')[1] || ''}\n👉 https://xn--hz2b60w.site`;
+            await navigator.clipboard.writeText(textToCopy);
+            alert("이미지 복사가 지원되지 않아 명언 텍스트가 대신 복사되었습니다! 📝");
+          } catch (e) {
+            alert("이 환경에서는 공유하기가 지원되지 않습니다. 옆의 '저장하기' 버튼을 이용해 주세요. 😢");
+          }
         }
       } else {
         alert("이 환경에서는 공유하기가 지원되지 않습니다. 옆의 '저장하기' 버튼을 이용해 주세요. 😢");
